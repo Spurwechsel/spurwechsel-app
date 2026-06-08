@@ -1,0 +1,2020 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#FF00CC">
+    <title>Spurwechsel Pro</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230044ff%22 stroke=%22%23000%22 stroke-width=%225%22/><text x=%2250%22 y=%2278%22 font-family=%22sans-serif%22 font-size=%2280%22 font-weight=%22900%22 fill=%22%23ffee00%22 text-anchor=%22middle%22 stroke=%22%23000%22 stroke-width=%223%22>S</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --c-blue: #0044ff;
+            --c-purple: #9d00ff;
+            --c-green: #00e676;
+            --c-red: #ff0055;
+            --c-yellow: #ffee00;
+            --c-bg: #ccffff;
+            
+            --border: 3px solid #000;
+            --shadow: 5px 5px 0px #000;
+            --shadow-sm: 3px 3px 0px #000;
+            --radius: 12px;
+        }
+
+        @keyframes bgMove {
+            0% { background-position: 0 0, 15px 15px; }
+            100% { background-position: 30px 30px, 45px 45px; }
+        }
+
+        @keyframes pulseLogo { 0%{transform:scale(1);} 50%{transform:scale(1.1);} 100%{transform:scale(1);} }
+        @keyframes pulseGold { 0%{box-shadow: 0 0 0px #fbbf24;} 50%{box-shadow: 0 0 15px #fbbf24;} 100%{box-shadow: 0 0 0px #fbbf24;} }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: var(--c-bg);
+            background-image: 
+                radial-gradient(#ff00cc 2px, transparent 2px), 
+                radial-gradient(#0044ff 2px, transparent 2px);
+            background-size: 30px 30px;
+            animation: bgMove 15s linear infinite;
+            color: #000;
+            margin: 0; padding: 0;
+            padding-right: 85px; 
+            padding-bottom: 80px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #loadingOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--c-yellow); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .loader-icon { font-size: 5rem; animation: pulseLogo 1s infinite; text-shadow: 4px 4px 0 #000; }
+        .loader-text { font-family: 'Bangers'; font-size: 2rem; color: #000; margin-top: 15px; letter-spacing: 2px;}
+
+        #loginOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--c-bg); background-image: radial-gradient(#ff00cc 2px, transparent 2px), radial-gradient(#0044ff 2px, transparent 2px); background-size: 30px 30px;
+            z-index: 9998; display: none; justify-content: center; align-items: center; padding: 20px;
+        }
+
+        h1, h2, h3, .brand-text, .score-val, .team-val { 
+            font-family: 'Bangers', cursive; letter-spacing: 2px; margin: 0 0 10px 0; 
+        }
+
+        .brand-logo { text-align: center; margin: 15px 0 10px 0; pointer-events: none; }
+        .brand-text {
+            font-size: 2.2rem; color: #fff; background: #000;
+            padding: 5px 25px; border: 3px solid #fff; outline: var(--border);
+            transform: rotate(-3deg); border-radius: 8px; display: inline-block;
+            text-shadow: 4px 4px 0 var(--c-purple); box-shadow: var(--shadow);
+        }
+
+        .app-header {
+            background: rgba(255, 255, 255, 0.95); padding: 12px 15px; 
+            border-bottom: var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 50; backdrop-filter: blur(4px);
+        }
+        .user-chip {
+            background: var(--c-yellow); border: var(--border); border-radius: 50px;
+            padding: 5px 15px 5px 5px; display: flex; align-items: center; gap: 10px;
+            box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.1s;
+        }
+        .user-chip:active { transform: translate(3px, 3px); box-shadow: none; }
+        .u-avatar { font-size: 2rem; background:#fff; border:2px solid #000; border-radius:50%; width:45px; height:45px; display:flex; align-items:center; justify-content:center;}
+        .u-info { line-height: 1.1; text-align: left;}
+        .u-name { font-weight: 700; font-size: 1.2rem; }
+        .score-box { text-align: right; }
+        .score-row { display: flex; align-items: center; justify-content: flex-end; gap: 5px; font-size: 1.4rem; font-weight:800; }
+
+        .container { max-width: 800px; margin: 0 auto; padding: 15px; }
+        .card {
+            background: #fff; border: var(--border); border-radius: var(--radius);
+            padding: 20px; margin-bottom: 25px; box-shadow: var(--shadow);
+            position: relative;
+        }
+        .card:nth-child(even) { transform: rotate(0.5deg); }
+        .card:nth-child(odd) { transform: rotate(-0.5deg); }
+        .hidden { display: none !important; }
+
+        .nav-sidebar {
+            position: fixed; right: 10px; top: 50%; transform: translateY(-50%);
+            display: flex; flex-direction: column; gap: 15px; z-index: 200;
+        }
+        .nav-btn {
+            width: 65px; height: 65px; background: #fff; border: var(--border); border-radius: 50%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: var(--shadow); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .nav-btn:hover { transform: scale(1.1); }
+        .nav-btn.active { background: var(--c-yellow); transform: scale(1.1) translateX(-5px); box-shadow: 6px 6px 0px rgba(0,0,0,0.8);}
+        .nav-icon { font-size: 1.8rem; margin-bottom: -4px; }
+        .nav-text { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; font-family: 'Fredoka'; }
+
+        .btn {
+            border: var(--border); padding: 12px; border-radius: 10px;
+            font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 1rem;
+            cursor: pointer; width: 100%; margin-bottom: 8px; background: #fff; 
+            box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: transform 0.1s;
+        }
+        .btn:active { transform: translate(3px, 3px); box-shadow: none; }
+        .btn-p { background: var(--c-blue); color: #fff; }
+        .btn-s { background: var(--c-purple); color: #fff; }
+        .btn-m { background: var(--c-green); color: #000; }
+        .btn-d { background: var(--c-red); color: #fff; }
+
+        input, select, textarea {
+            width: 100%; padding: 12px; border: 2px solid #000; border-radius: 8px;
+            font-family: inherit; font-weight: 600; font-size: 1rem; margin-bottom: 10px; 
+            box-sizing: border-box; background: #f0f9ff;
+        }
+
+        .cb-label {
+            display: inline-flex; align-items: center; gap: 5px; 
+            background: #fff; border: 2px solid #000; padding: 6px 12px; 
+            border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: bold;
+            box-shadow: 2px 2px 0 #000; transition: transform 0.1s;
+        }
+        .cb-label:active { transform: translate(2px, 2px); box-shadow: none; }
+        .cb-label input { width:auto; margin:0; padding:0; height:18px; width:18px; accent-color:var(--c-purple);}
+
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 2px dashed #eee; }
+        .setting-row:last-child { border-bottom: none; }
+        .switch { position: relative; display: inline-block; width: 54px; height: 30px; flex-shrink: 0;}
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e2e8f0; transition: .4s; border-radius: 34px; border: 2px solid #000; box-shadow: 2px 2px 0 #000;}
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; border: 2px solid #000;}
+        input:checked + .slider { background-color: var(--c-green); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        .tally-wrap { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; }
+        .tally-box {
+            display: flex; align-items: center; gap: 10px; background: #f8fafc;
+            border: 2px solid #000; border-radius: 20px; padding: 2px 10px; box-shadow: 2px 2px 0 #000;
+        }
+        .tally-btn {
+            background: none; border: none; font-size: 1.5rem; font-weight: 900; 
+            cursor: pointer; padding: 0 5px; transition: transform 0.1s;
+        }
+        .tally-btn:active { transform: scale(1.2); }
+        .tally-btn.minus { color: var(--c-red); }
+        .tally-btn.plus { color: var(--c-green); }
+        .tally-val { font-size: 1.2rem; font-weight: bold; font-family: 'Bangers'; min-width: 20px; text-align: center; }
+
+        .date-nav {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #fff; border: var(--border); border-radius: 50px;
+            padding: 8px 15px; margin-bottom: 15px; box-shadow: var(--shadow); font-weight: 700; font-size: 1.1rem;
+        }
+        .date-btn { background:none; border:none; font-size:1.5rem; cursor:pointer; color: var(--c-blue);}
+        
+        .status-box {
+            border: var(--border); border-radius: var(--radius); padding: 15px; 
+            margin-bottom: 20px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 15px; font-size: 0.95rem;
+        }
+        .status-box.ok { background: #bbf7d0; color: #000; }
+        .status-box.warn { background: #fecaca; color: #000; animation: wobble 2s infinite; }
+        @keyframes wobble { 0%{transform:rotate(0deg);} 25%{transform:rotate(1deg);} 75%{transform:rotate(-1deg);} 100%{transform:rotate(0deg);} }
+
+        .license-box {
+            border: var(--border); border-radius: var(--radius); padding: 15px;
+            margin-bottom: 20px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 15px;
+        }
+        .license-box.active { background: #bbf7d0; color: #000; }
+        .license-box.inactive { background: #e2e8f0; color: #64748b; }
+
+        .behavior-item {
+            display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
+            padding: 15px 0; border-bottom: 3px dotted #000;
+        }
+        .behavior-item:last-child { border-bottom: none; }
+        .b-title { font-weight: 700; font-size: 1.1rem; flex: 1; line-height: 1.2;}
+        
+        .score-controls { display: flex; flex-direction: row; gap: 6px; flex-wrap: wrap; justify-content: flex-start; width: 100%;}
+        .score-btn {
+            width: 42px; height: 42px; border: 2px solid #000; border-radius: 8px;
+            font-weight: 700; font-size: 1.1rem; color: #000; background: #fff;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: 2px 2px 0 #000; transition: transform 0.1s;
+        }
+        .score-btn:active { transform: translate(2px, 2px); box-shadow: none; }
+        
+        .score-btn.active[data-v="0"] { background: var(--c-red) !important; color: white !important; }
+        .score-btn.active[data-v="1"] { background: var(--c-yellow) !important; color: black !important; }
+        .score-btn.active[data-v="2"] { background: var(--c-green) !important; color: white !important; }
+        .score-btn.na { width: 35px; font-size: 1rem; background: #f1f5f9; color: #64748b;}
+        .score-btn.na.active { background: #64748b !important; color: white !important; }
+        
+        .score-btn[data-v="3"] { font-size: 1rem; color: #b45309; }
+        .score-btn[data-v="4"] { font-size: 1rem; color: #b45309; }
+        .score-btn.active[data-v="3"], .score-btn.active[data-v="4"] { 
+            background: linear-gradient(135deg, #fde047, #fbbf24) !important; 
+            color: #000 !important; 
+            animation: pulseGold 1.5s infinite;
+        }
+
+        .team-card { background: #fff; border: var(--border); border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+        .team-big-text { font-size: 1.8rem; font-family: 'Bangers'; letter-spacing:1px; display:flex; align-items:center; gap:10px;}
+        .team-pts { font-size: 2.2rem; font-family: 'Bangers'; color: var(--c-purple); float:right; text-shadow: 1px 1px 0 #000;}
+
+        .money-card { border: var(--border); border-radius: 15px; padding: 15px; flex: 1; text-align: center; background: white; box-shadow: var(--shadow-sm); }
+        .m-val { font-size: 1.8rem; font-family: 'Bangers'; color: var(--c-green); text-shadow: 1px 1px 0 #000;}
+        .m-hist-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 2px dashed #ccc; font-size: 0.95rem; }
+
+        .goal-box { background: #fdf4ff; border: var(--border); border-radius: 15px; padding: 15px; margin-top: 15px; box-shadow: var(--shadow); }
+        .goal-prog { height: 25px; border: 2px solid #000; border-radius: 12px; background: #fff; overflow:hidden; margin: 10px 0; position:relative;}
+        .goal-bar-fill { height: 100%; background: var(--c-green); }
+
+        .stat-btn {
+            border: 2px solid #000; border-radius: 20px; padding: 6px 12px; font-size: 0.9rem; font-weight:700;
+            cursor: pointer; background: #fff; transition: all 0.2s; color: #000; display: inline-block;
+        }
+        .stat-btn.active { color: #fff; text-shadow: 1px 1px 0 #000; box-shadow: 3px 3px 0 #000; transform: scale(1.05); }
+        .stat-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+
+        .overview-card {
+            background: #fff; border: var(--border); border-radius: 20px; padding: 15px; margin-bottom: 15px;
+            box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
+        }
+        .ov-badge { text-align: center; border: 2px solid #000; border-radius: 10px; padding: 10px; min-width: 80px; box-shadow: 2px 2px 0 #000; }
+
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+        .modal.open { display: flex; }
+        .modal-box {
+            background: #fff; border: var(--border); border-radius: 20px;
+            padding: 25px; width: 90%; max-width: 350px; max-height: 90vh; overflow-y: auto;
+            text-align: center; box-shadow: 8px 8px 0 var(--c-purple);
+        }
+        .child-opt {
+            padding: 12px; border: 2px solid #000; border-radius: 50px; margin: 10px 0;
+            font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 15px;
+            background: #fff; box-shadow: var(--shadow-sm); transition: background 0.1s;
+        }
+        .child-opt:hover { background: var(--c-yellow); }
+        
+        .avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 15px;}
+        .av-opt { width: 100%; aspect-ratio: 1; border: 2px solid #000; border-radius: 50%; cursor: pointer; font-size: 1.8rem; display: flex; align-items: center; justify-content: center; background:#fff;}
+        .av-opt.selected { background: var(--c-yellow); box-shadow: 2px 2px 0 #000;}
+
+        .note-container { position: relative; }
+        .note-actions { position: absolute; top: 5px; right: 5px; display: flex; flex-direction: column; gap: 5px; }
+        .note-btn {
+            background: #fff; border: 2px solid #000; border-radius: 8px; width: 35px; height: 35px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            box-shadow: 2px 2px 0 #000; font-size: 1.2rem;
+        }
+        .note-btn:active { transform: translate(2px, 2px); box-shadow: none; }
+
+        @media print {
+            .no-print, .nav-sidebar, .app-header, .brand-logo { display: none !important; }
+            body { padding: 0; background: white; background-image: none;}
+            .card, .overview-card { box-shadow: none; border: 2px solid #000; break-inside: avoid; transform: none !important;}
+        }
+    </style>
+</head>
+<body>
+
+<div id="loadingOverlay">
+    <div class="loader-icon">🚀</div>
+    <div class="loader-text">Cloud Sync läuft...</div>
+</div>
+
+<div id="loginOverlay">
+    <div class="card" style="width: 100%; max-width: 400px; transform: rotate(0deg); text-align:center;">
+        <div class="brand-text" style="font-size:2rem; margin-bottom:20px;">SPURWECHSEL</div>
+        <h3 style="margin-bottom:20px; font-family:'Fredoka'; font-weight:700;">Sicherer Cloud-Login</h3>
+        <input type="email" id="loginEmail" placeholder="Familien E-Mail (z.B. familie@...)">
+        <input type="password" id="loginPass" placeholder="Passwort">
+        <button class="btn btn-p" onclick="doLogin()" style="margin-top:10px;">Einloggen & Starten</button>
+    </div>
+</div>
+
+<div class="app-header">
+    <div class="user-chip" onclick="openChildModal()">
+        <div class="u-avatar" id="headAvatar">?</div>
+        <div class="u-info">
+            <div class="u-name" id="headName">...</div>
+        </div>
+        <div style="font-size:0.8rem; font-weight:900;">▼</div>
+    </div>
+    <div class="score-box">
+        <div class="score-row" style="color:var(--c-blue)"><span id="headScoreBlue">0</span> 🔵</div>
+        <div class="score-row" style="color:var(--c-purple)"><span id="headScorePurple">0</span> 🟣</div>
+    </div>
+</div>
+
+<div class="brand-logo"><div class="brand-text">SPURWECHSEL</div></div>
+
+<div class="nav-sidebar no-print">
+    <div class="nav-btn active" onclick="nav('viewTracker', this)"><span class="nav-icon">📝</span><span class="nav-text">Plan</span></div>
+    <div class="nav-btn" onclick="nav('viewOverview', this)"><span class="nav-icon">👥</span><span class="nav-text">Alle</span></div>
+    <div class="nav-btn" onclick="nav('viewSocial', this)"><span class="nav-icon">🤝</span><span class="nav-text">Team</span></div>
+    <div class="nav-btn" onclick="nav('viewShop', this)"><span class="nav-icon">🛍</span><span class="nav-text">Shop</span></div>
+    <div class="nav-btn" onclick="nav('viewMoney', this)"><span class="nav-icon">💰</span><span class="nav-text">Geld</span></div>
+    <div class="nav-btn" onclick="nav('viewStats', this)"><span class="nav-icon">📊</span><span class="nav-text">Stats</span></div>
+    <div class="nav-btn" onclick="requestPin()"><span class="nav-icon">⚙️</span><span class="nav-text">Setup</span></div>
+</div>
+
+<div id="childModal" class="modal" onclick="if(event.target.id==='childModal')this.classList.remove('open')">
+    <div class="modal-box"><h2>Wer bist du?</h2><div id="childListModal"></div><button class="btn" onclick="document.getElementById('childModal').classList.remove('open')">Zurück</button></div>
+</div>
+
+<div id="pinModal" class="modal">
+    <div class="modal-box">
+        <h2>🔒 PIN Eingabe</h2>
+        <input type="password" id="pinInput" placeholder="0000" style="text-align:center;font-size:2rem; letter-spacing:5px;">
+        <button class="btn btn-p" onclick="checkPin()">OK</button>
+        <button class="btn" onclick="document.getElementById('pinModal').classList.remove('open')">Abbruch</button>
+    </div>
+</div>
+
+<div id="banModal" class="modal">
+    <div class="modal-box">
+        <h2>🚫 Einschränkung</h2>
+        <p id="banChildLabel" style="font-weight:bold; font-size:1.2rem;"></p>
+        <input type="text" id="banTitle" placeholder="Was? (z.B. TV-Verbot)">
+        <label style="display:block;text-align:left; font-weight:bold;">Von:</label><input type="date" id="banStart">
+        <label style="display:block;text-align:left; font-weight:bold;">Bis (inkl.):</label><input type="date" id="banEnd">
+        <button class="btn btn-d" onclick="saveBan()">Speichern</button>
+        <button class="btn" onclick="document.getElementById('banModal').classList.remove('open')">Abbruch</button>
+    </div>
+</div>
+
+<div id="editChildModal" class="modal">
+    <div class="modal-box">
+        <h2>✏️ Kind bearbeiten</h2>
+        <input type="hidden" id="editCId">
+        <input type="text" id="editCName" placeholder="Name" style="text-align:center; font-weight:bold; font-size:1.2rem;">
+        
+        <label style="font-weight:bold; font-size:0.9rem; margin-top:10px; display:block;">Avatar wählen:</label>
+        <div id="editAvatarGrid" class="avatar-grid"></div>
+        
+        <label style="font-weight:bold; font-size:0.9rem; margin-top:10px; display:block;">Taschengeld Automatik:</label>
+        <div style="display:flex; gap:10px;">
+            <input type="number" id="editTgAmount" placeholder="Betrag in €">
+            <select id="editTgInterval"><option value="Woche">Wöchentlich</option><option value="Monat">Monatlich</option></select>
+        </div>
+        
+        <button class="btn btn-p" style="margin-top:15px;" onclick="saveEditChild()">Änderungen speichern</button>
+        <button class="btn" onclick="document.getElementById('editChildModal').classList.remove('open')">Abbruch</button>
+    </div>
+</div>
+
+<div id="editBehavModal" class="modal">
+    <div class="modal-box">
+        <h2>✏️ Verhalten bearbeiten</h2>
+        <input type="hidden" id="editBId">
+        <input type="text" id="editBTitle" placeholder="Verhalten (z.B. Zimmer saugen)">
+        
+        <select id="editBType">
+            <option value="general">🔵 Eigene Coins</option>
+            <option value="social">🟣 Team/Sozial</option>
+        </select>
+        
+        <label style="font-weight:bold; font-size:0.9rem; margin-top:5px; display:block;">Für wen? <span style="font-weight:normal; color:#666;">(Niemand angewählt = Für Alle)</span></label>
+        <div id="editBehavAssignGroup" style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px;"></div>
+        
+        <label style="display:flex; align-items:center; gap:5px; margin-top:10px; background:#fef08a; padding:10px; border-radius:8px; border:2px solid #000; cursor:pointer;">
+            <input type="checkbox" id="editBJackpot" style="width:auto; margin:0;"> ⭐ 4-Punkte Jackpot erlauben (vorher 3)
+        </label>
+        
+        <button class="btn btn-p" style="margin-top:15px;" onclick="saveEditBehav()">Änderungen speichern</button>
+        <button class="btn" onclick="document.getElementById('editBehavModal').classList.remove('open')">Abbruch</button>
+    </div>
+</div>
+
+<div id="moneyModal" class="modal">
+    <div class="modal-box">
+        <h2>💰 Buchung</h2>
+        <select id="monAction" onchange="toggleMoneyInputs()">
+            <option value="deposit">➕ Einzahlung (z.B. Oma)</option>
+            <option value="spend">➖ Ausgabe / Kauf</option>
+            <option value="transfer">🔄 Umbuchen (Bar ↔ Spar)</option>
+        </select>
+        <div id="divTarget">
+            <label style="font-weight:bold;">Ziel-Konto:</label>
+            <select id="monTarget"><option value="cash">Bargeld</option><option value="save">Sparschwein</option></select>
+        </div>
+        <div id="divSource" style="display:none;">
+            <label style="font-weight:bold;">Gezahlt von:</label>
+            <select id="monSource"><option value="cash">Bargeld</option><option value="save">Sparschwein</option></select>
+        </div>
+        <div id="divTransfer" style="display:none;">
+            <label style="font-weight:bold;">Aktion:</label>
+            <select id="monDirect"><option value="c2s">🐷 Geld ins Sparschwein legen</option><option value="s2c">💸 Geld aus Sparschwein nehmen</option></select>
+        </div>
+        <input type="text" id="monReason" placeholder="Grund (z.B. Kino, Zeugnis)">
+        <input type="number" id="monVal" placeholder="Betrag in €" step="0.01">
+        <button class="btn btn-m" onclick="doMoneyTransaction()">Jetzt Buchen!</button>
+        <button class="btn" onclick="document.getElementById('moneyModal').classList.remove('open')">Abbruch</button>
+    </div>
+</div>
+
+<div id="exchangeModal" class="modal">
+    <div class="modal-box">
+        <h2>🔵 ➜ 💰 Wechseln</h2>
+        <p style="font-size:1.2rem; font-weight:bold;">Kurs: <span id="exRateDisplay"></span> Coins = 1 €</p>
+        <p style="font-size:1.1rem;">Du hast aktuell: <b style="color:var(--c-blue)" id="exCurrentCoins">0</b> Coins</p>
+        <input type="number" id="exCoins" placeholder="Wie viele Coins tauschen?" oninput="calcExPreview()" style="font-size:1.2rem; text-align:center;">
+        <div style="font-size:1.2rem; margin:10px 0;">Das macht: <b id="exPreview" style="color:var(--c-green); font-size:1.8rem;">0,00 €</b></div>
+        <p style="font-size:0.8rem;">Wandert direkt ins Bargeld-Konto!</p>
+        <button class="btn btn-p" onclick="doExchange()">Tauschen!</button>
+        <button class="btn" onclick="document.getElementById('exchangeModal').classList.remove('open')">Abbruch</button>
+    </div>
+</div>
+
+
+<div id="viewTracker" class="container">
+    <div class="date-nav">
+        <button class="date-btn" onclick="changeDate(-1)">◀</button>
+        <span id="dateDisplay" style="font-family:'Bangers'; font-size:1.8rem; letter-spacing:1px;">Heute</span>
+        <button class="date-btn" onclick="changeDate(1)">▶</button>
+    </div>
+
+    <div id="statusContainer"></div>
+
+    <div id="teamSyncBanner" class="hidden" style="background: linear-gradient(135deg, #fbbf24, #d97706); padding: 15px; border-radius: 12px; border: 3px solid #000; box-shadow: 4px 4px 0 #000; margin-bottom: 20px; color: white; text-align: center;">
+        <h2 style="color: white; margin-bottom: 5px; text-shadow: 2px 2px 0 #000;">🚀 TEAM-SYNC-BONUS AKTIV!</h2>
+        <p style="font-weight: bold; font-size: 1.1rem; text-shadow: 1px 1px 0 #000; margin-bottom: 0;">Jeder hat den Jackpot geholt! Die Punkte werden für alle verdoppelt!</p>
+    </div>
+
+    <div id="licenseContainer" class="hidden">
+        <div id="licenseBox" class="license-box inactive">
+            <div style="font-size:2.5rem">📺</div>
+            <div id="licenseText" style="font-size:1.1rem;">Prüfe...</div>
+        </div>
+    </div>
+
+    <div class="card" style="border-left:8px solid var(--c-yellow); background:#fffbeb;">
+        <h2 style="color:#a16207; margin-bottom:5px;">📝 Notizen (Heute)</h2>
+        <div class="note-container">
+            <textarea id="childNote" rows="3" placeholder="Notizen zum Verhalten..." oninput="saveNote()" style="padding-right:45px; margin-bottom:0;"></textarea>
+            <div class="note-actions">
+                <button type="button" class="note-btn" onclick="startDictation()" title="Spracheingabe">🎤</button>
+                <button type="button" class="note-btn" style="color:var(--c-red);" onclick="clearNote()" title="Löschen">🗑️</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="border-left:8px solid var(--c-blue);">
+        <h2 style="color:var(--c-blue)">🔵 Mein Bereich</h2>
+        <div id="listGeneral"></div>
+    </div>
+    <div class="card" style="border-left:8px solid var(--c-purple);">
+        <h2 style="color:var(--c-purple)">🤝 Sozial / Team</h2>
+        <div id="listSocial"></div>
+    </div>
+</div>
+
+<div id="viewOverview" class="container hidden">
+    <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <h2 style="margin:0;">👥 Alle Kinder</h2>
+            <div id="overviewDateDisplay" style="color:#666; font-weight:bold; font-size:0.9rem; margin-top:5px;"></div>
+        </div>
+        <button class="btn btn-ghost no-print" style="width:auto; margin:0;" onclick="window.print()">🖨 Drucken</button>
+    </div>
+    <div id="overviewList"></div>
+</div>
+
+<div id="viewSocial" class="container hidden">
+    <div class="card" style="background: linear-gradient(135deg, #aa00ff, #7e22ce); color:white; border:4px solid #000;">
+        <h2>Unser großes Ziel</h2>
+        <div style="font-size:2.8rem; font-family:'Bangers'; line-height:1;" id="evtName">...</div>
+        <div style="display:flex; justify-content:space-between; margin-top:15px; background:rgba(0,0,0,0.2); padding:10px; border-radius:10px;">
+            <div>
+                <div style="font-size:0.8rem; font-weight:bold; text-transform:uppercase;">Stichtag</div>
+                <div id="evtDate" style="font-weight:900; font-size:1.2rem;">--.--.----</div>
+            </div>
+            <div style="text-align:right;">
+                <div style="font-size:0.8rem; font-weight:bold; text-transform:uppercase;">Countdown</div>
+                <div id="evtCountdown" style="color:var(--c-yellow); font-family:'Bangers'; font-size:1.5rem; letter-spacing:1px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <h3>Fortschritt im Team</h3>
+    <p style="font-size:0.9rem; margin-bottom:15px;">Hier siehst du die Punkte, die sicher für das Gemeinschaftsevent gespart werden. Shop-Einkäufe ziehen hier nichts ab!</p>
+    <div id="teamGrid"></div>
+
+    <div class="card" style="margin-top:20px; background:#f0fdf4;">
+        <h3>⚖️ Wiedergutmachung</h3>
+        <p style="font-weight:600; font-size:0.9rem;">Übertrage Sozialpunkte an ein anderes Kind.</p>
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+            <select id="trFrom"></select> <span style="font-size:1.5rem; font-weight:bold;">➜</span> <select id="trTo"></select>
+        </div>
+        <input type="number" id="trAmt" value="1" placeholder="Wie viele Punkte?">
+        <button class="btn btn-s" onclick="doTransfer()">Punkte rüberschieben!</button>
+    </div>
+</div>
+
+<div id="viewMoney" class="container hidden">
+    <h2 style="color:var(--c-green)">💰 Mein Geld</h2>
+    <div style="display:flex; gap:10px; margin-bottom:15px;">
+        <div class="money-card">
+            <div style="font-size:0.85rem; font-weight:800;">BARGELD</div>
+            <div class="m-val" id="dispCash">0,00 €</div>
+        </div>
+        <div class="money-card" style="border-color:var(--c-purple); background:#faf5ff;">
+            <div style="font-size:0.85rem; font-weight:800;">SPARSCHWEIN</div>
+            <div class="m-val" style="color:var(--c-purple)" id="dispSave">0,00 €</div>
+        </div>
+    </div>
+    <div id="goalContainer"></div>
+    <div id="exchangeBtnContainer" style="margin:15px 0;"></div>
+    <button class="btn btn-m" style="padding:15px; font-size:1.2rem;" onclick="openMoneyModal()">➕ Buchen / Sparen / Ausgeben</button>
+    <div class="card" style="margin-top:20px;">
+        <h3>Kontoauszug (Zuletzt)</h3>
+        <div id="moneyHistory"></div>
+    </div>
+</div>
+
+<div id="viewShop" class="container hidden">
+    <h2 style="color:var(--c-blue)">🛍️ Sozial-Shop & Coins</h2>
+    
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <div class="card" style="flex: 1; text-align: center; margin-bottom: 0; padding: 15px;">
+            <div style="font-weight: bold; font-size: 0.9rem; text-transform: uppercase;">Deine Shop-Coins</div>
+            <div style="font-size: 3rem; font-family: 'Bangers'; color: var(--c-purple);"><span id="shopScoreSoz">0</span> 🟣</div>
+            <div style="font-size: 0.8rem;">(Sozial-Punkte)</div>
+        </div>
+        <div class="card" style="flex: 1; text-align: center; margin-bottom: 0; padding: 15px;">
+            <div style="font-weight: bold; font-size: 0.9rem; text-transform: uppercase;">Normale Coins</div>
+            <div style="font-size: 3rem; font-family: 'Bangers'; color: var(--c-blue);"><span id="shopScoreGen">0</span> 🔵</div>
+            <div style="font-size: 0.8rem;">(Aufgaben)</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Einlösen</h3>
+        <p style="font-size:0.9rem; margin-bottom:15px;">Belohnungen kaufen! Deine Punkte für das große Event bleiben dabei sicher erhalten.</p>
+        <div id="shopList"></div>
+    </div>
+    <div class="card">
+        <h3>Gekauft (Historie)</h3>
+        <div id="shopHistory"></div>
+    </div>
+</div>
+
+<div id="viewStats" class="container hidden">
+    <h2 class="no-print">📈 Statistik</h2>
+    <div class="card no-print">
+        <div style="display:flex; gap:10px; margin-bottom:10px;">
+            <div style="flex:1"><label style="font-weight:bold; font-size:0.8rem;">Von</label><input type="date" id="statStart"></div>
+            <div style="flex:1"><label style="font-weight:bold; font-size:0.8rem;">Bis</label><input type="date" id="statEnd"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+            <label style="font-weight:bold;">Ziele Filtern:</label>
+            <button class="btn btn-ghost" style="width:auto; padding:5px 10px; font-size:0.8rem; margin:0; border:2px solid #000;" onclick="selectAllStats()">Alle anwählen</button>
+        </div>
+        <div id="statFilters" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+        <button class="btn btn-p" onclick="drawStats()" style="margin-top:15px;">Grafik Zeichnen</button>
+        <button class="btn btn-ghost" style="border:2px solid #000;" onclick="window.print()">🖨 Ausdrucken</button>
+    </div>
+    <div class="card">
+        <h2>Auswertung</h2>
+        <div id="printRange" style="font-weight:bold; margin-bottom:15px; font-size:1.1rem;"></div>
+        <div id="canvasContainer" style="width:100%; position:relative;">
+            <canvas id="statCanvas" style="width:100%; height:300px; display:block;"></canvas>
+        </div>
+        <div id="statLegend" class="stat-legend"></div>
+    </div>
+</div>
+
+<div id="viewSettings" class="container hidden">
+    <h2>Setup / Einstellungen</h2>
+    
+    <div class="card" style="background:#fef08a;">
+        <h3>Allgemeine Funktionen</h3>
+        <div class="setting-row" style="display:block;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <b>📺 TV-Lizenz Automatik</b>
+                <label class="switch"><input type="checkbox" id="setTvToggle" onchange="saveSettingsGeneral()"><span class="slider"></span></label>
+            </div>
+            <div style="margin-top:5px; font-size:0.9rem; display:flex; align-items:center; gap:5px;">
+                Gesamtziel (Gestern+Heute zusammen): <input type="number" id="setTvThreshold" style="width:60px; padding:5px; margin:0;" onchange="saveSettingsGeneral()">
+            </div>
+        </div>
+        <div class="setting-row" style="display:block;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <b>🔵 Wechselstube (Coins ➜ €)</b>
+                <label class="switch"><input type="checkbox" id="setExToggle" onchange="saveSettingsGeneral()"><span class="slider"></span></label>
+            </div>
+            <div style="margin-top:5px; display:flex; align-items:center; gap:5px; font-weight:bold; font-size:0.9rem;">
+                Kurs: <input type="number" id="setExRate" style="width:60px; padding:5px; margin:0;" onchange="saveSettingsGeneral()"> Coins = 1€
+            </div>
+        </div>
+        <div class="setting-row">
+            <div>
+                <b>🎯 Sparziel (Grafik)</b><br>
+                <span style="font-size:0.8rem; color:#444;">Zeigt einen Balken im Geld-Reiter.</span>
+            </div>
+            <label class="switch"><input type="checkbox" id="setGoalToggle" onchange="saveSettingsGeneral()"><span class="slider"></span></label>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Sicherheit</h3>
+        <label style="font-weight:bold;">Eltern-PIN ändern:</label>
+        <div style="display:flex; gap:10px; margin-bottom:10px;">
+            <input type="number" id="setNewPin" placeholder="Neue PIN eingeben">
+            <button class="btn btn-p" style="width:auto; padding:0 20px;" onclick="saveNewPin()">Speichern</button>
+        </div>
+        <button class="btn btn-d" style="width:100%; border:2px solid #000;" onclick="doLogout()">🚪 Von der App abmelden</button>
+    </div>
+
+    <div class="card">
+        <h3>Kinder verwalten</h3>
+        <div id="setChildList"></div>
+        <div style="background:#f0f9ff; padding:15px; border:2px dashed #000; border-radius:15px; margin-top:20px;">
+            <h4 style="margin-top:0;">Neues Kind anlegen</h4>
+            <input type="text" id="newCName" placeholder="Name">
+            <label style="font-weight:bold; font-size:0.9rem;">Avatar wählen:</label>
+            <div id="avatarGrid" class="avatar-grid"></div>
+            <label style="font-weight:bold; font-size:0.9rem; margin-top:10px; display:block;">Start-Punkte (falls aus alter Liste):</label>
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="initB" placeholder="Start 🔵">
+                <input type="number" id="initP" placeholder="Start 🟣">
+            </div>
+            <label style="font-weight:bold; font-size:0.9rem; margin-top:5px; display:block;">Taschengeld Automatik:</label>
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="tgAmount" placeholder="Betrag in €">
+                <select id="tgInterval"><option value="Woche">Wöchentlich (Mo)</option><option value="Monat">Monatlich (1.)</option></select>
+            </div>
+            <button class="btn btn-p" style="margin-top:10px;" onclick="addChild()">Kind speichern</button>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3>🎯 Sparziel (1 pro Kind)</h3>
+        <select id="goalChildSelect" onchange="renderGoalSetting()"></select>
+        <div id="currentGoalDisplay" style="margin:10px 0; font-weight:bold; background:#fdf4ff; padding:10px; border-radius:8px; border:1px solid #000;"></div>
+        <div style="border-top:2px dashed #eee; padding-top:10px;">
+            <input type="text" id="newGoalName" placeholder="Was wird gespart? (z.B. Fahrrad)">
+            <input type="number" id="newGoalCost" placeholder="Wie teuer ist es? (€)">
+            <button class="btn btn-m" onclick="setGoal()">Ziel festlegen / überschreiben</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Gemeinschafts-Event</h3>
+        <label>Titel des Events:</label><input type="text" id="setEvtTitle">
+        <label>Wann (Stichtag):</label><input type="date" id="setEvtDate">
+        <label>Benötigte Sozial-Punkte (Pro Kind):</label><input type="number" id="setEvtTarget">
+        <button class="btn btn-s" onclick="saveEvent()">Event Aktualisieren</button>
+    </div>
+
+    <div class="card">
+        <h3>Verhalten & Ziele (Plan)</h3>
+        <div id="setBehavList"></div>
+        <div style="margin-top:15px; border-top:2px dashed #000; padding-top:15px;">
+            <label style="font-weight:bold;">Neues Verhalten anlegen:</label>
+            <input type="text" id="newBehavTitle" placeholder="Verhalten (z.B. Zimmer saugen)">
+            <select id="newBehavType"><option value="general">🔵 Eigene Coins</option><option value="social">🟣 Team/Sozial</option></select>
+            <label style="font-weight:bold; font-size:0.9rem; margin-top:5px; display:block;">Für wen? <span style="font-weight:normal; color:#666;">(Niemand angewählt = Für Alle)</span></label>
+            <div id="newBehavAssignGroup" style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px;"></div>
+            
+            <label style="display:flex; align-items:center; gap:5px; margin-top:10px; background:#fef08a; padding:10px; border-radius:8px; border:2px solid #000; cursor:pointer;">
+                <input type="checkbox" id="newBehavJackpot" style="width:auto; margin:0;"> ⭐ 4-Punkte Jackpot erlauben (vorher 3)
+            </label>
+
+            <button class="btn btn-p" style="margin-top:15px;" onclick="addBehavior()">Zur Liste hinzufügen</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Belohnungen (Shop)</h3>
+        <div id="setShopList"></div>
+        <div style="margin-top:15px; border-top:2px dashed #000; padding-top:15px;">
+            <input type="text" id="newSTitle" placeholder="Belohnung">
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="newSCost" placeholder="Preis">
+                <select id="newSCurrency"><option value="general">🔵 Normale Coins</option><option value="social">🟣 Sozial-Punkte</option></select>
+            </div>
+            <button class="btn btn-p" onclick="addShop()">In Shop stellen</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDe3D4X2N_-rPc7mVSHNvo894J0s0retWo",
+  authDomain: "spurwechsel-7833e.firebaseapp.com",
+  databaseURL: "https://spurwechsel-7833e-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "spurwechsel-7833e",
+  storageBucket: "spurwechsel-7833e.firebasestorage.app",
+  messagingSenderId: "410183494360",
+  appId: "1:410183494360:web:d3c5942040d2cd212e85ad"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const auth = firebase.auth();
+
+const AVATARS = ['🕷️','⚡','🦇','🛡️','🦸‍♂️','🦹‍♂️','🤖','🔨','🕸️','🔥'];
+const COLORS = ['#ff0055', '#0044ff', '#00e676', '#ffaa00', '#9d00ff', '#ff6600', '#00ccff', '#ff00cc'];
+
+const DB_KEY = 'spurwechsel_v35';
+let state = {
+    settings: { tvEnabled: true, tvThreshold: 3, pin: "0000", exEnabled: false, exRate: 10, goalEnabled: true },
+    children: [], 
+    behaviors: [],
+    shopItems: [],
+    logs: [],
+    tallies: [], 
+    purchases: [],
+    transfers: [],
+    exchange: [],
+    event: { title: "Kino Ausflug", date: "2026-12-31", target: 50 },
+    eventResets: {}
+};
+
+let activeChildId = null;
+let uiDate = new Date();
+let selectedAvatar = AVATARS[0];
+let editBanChildId = null;
+let editBanId = null; 
+let editSelectedAvatar = ''; 
+let isFirstLoad = true;
+
+auth.onAuthStateChanged(user => {
+    if (user) {
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        startApp();
+    } else {
+        document.getElementById('loginOverlay').style.display = 'flex';
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+});
+
+function doLogin() {
+    const email = document.getElementById('loginEmail').value;
+    const pass = document.getElementById('loginPass').value;
+    if(!email || !pass) return alert("Bitte E-Mail und Passwort eingeben.");
+    
+    auth.signInWithEmailAndPassword(email, pass).catch(err => {
+        alert("Fehler beim Login: " + err.message);
+    });
+}
+
+function doLogout() {
+    if(confirm('Möchtest du dich wirklich abmelden?')) auth.signOut();
+}
+
+function startApp() {
+    db.ref('spurwechsel_data').on('value', (snapshot) => {
+        const cloudData = snapshot.val();
+        
+        if (cloudData) {
+            state = cloudData;
+        } else if (isFirstLoad) {
+            const localData = localStorage.getItem('spurwechsel_v33') || localStorage.getItem('spurwechsel_v32'); 
+            if (localData) {
+                state = JSON.parse(localData);
+            } else {
+                seedData();
+            }
+        }
+
+        // --- ABSOLUT BULLETPROOF AUTO-REPARATUR ---
+        // Dies verhindert jeden Javascript-Absturz durch korrupte Firebase-Arrays
+        try {
+            function forceArr(val) {
+                if (!val) return [];
+                if (Array.isArray(val)) return val;
+                if (typeof val === 'object') return Object.values(val);
+                return [];
+            }
+
+            if (!state.settings) state.settings = { tvEnabled: true, tvThreshold: 3, pin: "0000", exEnabled: false, exRate: 10, goalEnabled: true };
+            
+            ['children', 'behaviors', 'shopItems', 'logs', 'tallies', 'purchases', 'transfers', 'exchange'].forEach(key => {
+                state[key] = forceArr(state[key]);
+            });
+
+            if (!state.event) state.event = { title: "Unser Event", date: "2026-12-31", target: 50 };
+            if (!state.eventResets) state.eventResets = {};
+
+            state.children.forEach(c => {
+                c.bans = forceArr(c.bans);
+                if (!c.money) c.money = { cash: 0, savings: 0, history: [], amount: 0, interval: '-', lastPaidWeek: getIsoWeek(new Date()), lastPaidMonth: getIsoMonth(new Date()) };
+                c.money.history = forceArr(c.money.history);
+                c.initBlue = parseInt(c.initBlue) || 0;
+                c.initPurple = parseInt(c.initPurple) || 0;
+            });
+            
+            state.behaviors.forEach(b => {
+                if (b.assignedTo && !Array.isArray(b.assignedTo) && typeof b.assignedTo !== 'string') {
+                    b.assignedTo = forceArr(b.assignedTo);
+                }
+            });
+        } catch(e) {
+            console.error("Auto-Repair Error:", e);
+        }
+        // ------------------------------------------
+
+        // GARANTIERT: Ladebildschirm verschwindet, selbst wenn danach ein UI Fehler auftritt
+        document.getElementById('loadingOverlay').style.display = 'none';
+
+        if (isFirstLoad) {
+            isFirstLoad = false;
+            
+            try {
+                checkBrowser(); 
+                cleanUpBans();  
+                if(state.children && state.children.length > 0 && !activeChildId) activeChildId = state.children[0].id;
+
+                checkAllowanceAutoPay();
+
+                document.getElementById('statEnd').valueAsDate = new Date();
+                let d = new Date(); d.setDate(d.getDate()-7);
+                document.getElementById('statStart').valueAsDate = d;
+
+                renderAvatars();
+            } catch(e) {
+                console.error("Init Error:", e);
+            }
+        }
+
+        try {
+            updateUI();
+            if(!document.getElementById('viewSettings').classList.contains('hidden')) renderSettingsLists();
+        } catch(e) {
+            console.error("UI Update Error:", e);
+        }
+    });
+}
+
+function checkBrowser() {
+    const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    if(!isChrome && !localStorage.getItem('chromeWarningDismissed')) {
+        alert("👋 Kleiner Tipp:
+Für die beste Erfahrung (insbesondere für die Spracheingabe) öffne diese App am besten im Google Chrome Browser!");
+        localStorage.setItem('chromeWarningDismissed', 'true');
+    }
+}
+
+function cleanUpBans() {
+    const today = getFDate(new Date());
+    let changed = false;
+    if(state.children) {
+        state.children.forEach(c => {
+            if (c.bans) {
+                const originalLen = c.bans.length;
+                c.bans = c.bans.filter(b => b.end >= today);
+                if (c.bans.length !== originalLen) changed = true;
+            }
+        });
+    }
+    if (changed) saveData();
+}
+
+function seedData() {
+    state.children = [{
+        id:'c1', name:'Hero', avatar:'🕷️', initBlue:0, initPurple:0, bans:[], 
+        money: { amount:5, interval:'Woche', cash:0, savings:0, history:[], lastPaidWeek: getIsoWeek(new Date()), lastPaidMonth: getIsoMonth(new Date()) }, 
+        goal: {name: 'Fahrrad', amount: 150}, lastPayDate: '', note: ''
+    }];
+    state.behaviors = [
+        {id:'b1', title:'Hausaufgaben', type:'general', assignedTo:null, hasJackpot: false}, 
+        {id:'b2', title:'Verhalten untereinander', type:'social', assignedTo:null, hasJackpot: true}
+    ];
+    state.shopItems = [{id:'s1', title:'1 Std. Medienzeit', cost:10, currency:'general'}];
+    saveData();
+}
+
+function getFDate(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+function formatDateDE(s) { return s.split('-').reverse().join('.'); }
+
+function getIsoWeek(d) {
+    const date = new Date(d.getTime());
+    if (isNaN(date.getTime())) return "Unbekannt";
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+    const week1 = new Date(date.getFullYear(), 0, 4);
+    const w = 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+    return date.getFullYear() + '-W' + w;
+}
+function getIsoMonth(d) { 
+    if (isNaN(d.getTime())) return "Unbekannt";
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); 
+}
+
+function checkAllowanceAutoPay() {
+    if(!state.children) return;
+    const d = new Date();
+    const todayStr = getFDate(d);
+    const curW = getIsoWeek(d);
+    const curM = getIsoMonth(d);
+    let changed = false;
+
+    state.children.forEach(c => {
+        if(!c.money) return;
+        if(!c.money.lastPaidWeek) c.money.lastPaidWeek = c.lastPayDate ? getIsoWeek(new Date(c.lastPayDate)) : curW;
+        if(!c.money.lastPaidMonth) c.money.lastPaidMonth = c.lastPayDate ? getIsoMonth(new Date(c.lastPayDate)) : curM;
+
+        let payAmt = 0;
+        let actualPayDate = todayStr;
+
+        if(c.money.interval === 'Woche' && c.money.lastPaidWeek !== curW) {
+            c.money.lastPaidWeek = curW;
+            payAmt = parseFloat(c.money.amount);
+            let monday = new Date(d);
+            let day = monday.getDay();
+            let diff = monday.getDate() - day + (day === 0 ? -6 : 1);
+            monday.setDate(diff);
+            actualPayDate = getFDate(monday);
+        }
+        else if(c.money.interval === 'Monat' && c.money.lastPaidMonth !== curM) {
+            c.money.lastPaidMonth = curM;
+            payAmt = parseFloat(c.money.amount);
+            let firstDay = new Date(d.getFullYear(), d.getMonth(), 1);
+            actualPayDate = getFDate(firstDay);
+        }
+        
+        if(payAmt > 0) {
+            if(!c.money.history) c.money.history = [];
+            c.money.cash += payAmt;
+            c.money.history.push({date:actualPayDate, type:'income', note:'Taschengeld (Auto)', amount:payAmt, source: 'Bar'});
+            c.lastPayDate = todayStr; 
+            changed = true;
+        }
+    });
+    if(changed) saveData();
+}
+
+function checkTeamSync(dateStr) {
+    if(!state.children || !state.logs || !state.behaviors) return false;
+    
+    const socialJackpots = state.behaviors.filter(b => b.type === 'social' && b.hasJackpot);
+    if(socialJackpots.length === 0) return false;
+
+    let syncAchieved = false;
+
+    socialJackpots.forEach(behav => {
+        let allChildrenHaveJackpot = true;
+        state.children.forEach(child => {
+            const log = state.logs.find(l => l.date === dateStr && l.childId === child.id && l.behavId === behav.id);
+            if(!log || (log.val !== 4 && log.val !== 8)) {
+                allChildrenHaveJackpot = false;
+            }
+        });
+        
+        if(allChildrenHaveJackpot) syncAchieved = true;
+    });
+
+    return syncAchieved;
+}
+
+function applyTeamSync(dateStr) {
+    if(!checkTeamSync(dateStr)) return false;
+
+    let changed = false;
+    const socialJackpots = state.behaviors.filter(b => b.type === 'social' && b.hasJackpot);
+
+    socialJackpots.forEach(behav => {
+        let allHaveFour = true;
+        state.children.forEach(child => {
+            const log = state.logs.find(l => l.date === dateStr && l.childId === child.id && l.behavId === behav.id);
+            if(!log || log.val !== 4) allHaveFour = false;
+        });
+
+        if(allHaveFour) {
+            state.children.forEach(child => {
+                const logIndex = state.logs.findIndex(l => l.date === dateStr && l.childId === child.id && l.behavId === behav.id);
+                if(logIndex !== -1) {
+                    state.logs[logIndex].val = 8;
+                    changed = true;
+                }
+            });
+        }
+    });
+
+    return changed;
+}
+
+function getBalances(cId) {
+    const c = state.children.find(x => x.id === cId);
+    if(!c) return {blue:0, purpleEvent:0, purpleShop:0, lifetime:0};
+    
+    let blue = parseInt(c.initBlue||0);
+    let purpleEvent = parseInt(c.initPurple||0);
+    let purpleShop = parseInt(c.initPurple||0); 
+    
+    let lifetime = 0;
+    let lastReset = state.eventResets ? state.eventResets[cId] || '2000-01-01' : '2000-01-01';
+
+    if(state.logs) {
+        state.logs.forEach(l => {
+            if(l.childId !== cId) return;
+            const b = state.behaviors ? state.behaviors.find(x => x.id === l.behavId) : null;
+            if(!b || l.val < 0) return;
+            
+            let points = l.val;
+            
+            if(points > 0) lifetime += points;
+            if(b.type === 'general' && points > 0) {
+                blue += points;
+            }
+            else if(b.type === 'social' && points > 0) {
+                purpleShop += points;
+                if(l.date > lastReset) purpleEvent += points;
+            }
+        });
+    }
+
+    if(state.purchases) {
+        state.purchases.forEach(p => { 
+            if(p.childId===cId) {
+                if(p.currency === 'social') purpleShop -= p.cost;
+                else blue -= p.cost;
+            }
+        });
+    }
+    if(state.exchange) state.exchange.forEach(e => { if(e.childId===cId) blue -= e.coins; });
+    
+    if(state.transfers) {
+        state.transfers.forEach(t => {
+            if(t.from === cId) {
+                purpleShop -= t.amount;
+                if(t.date > lastReset) purpleEvent -= t.amount;
+            }
+            if(t.to === cId) {
+                purpleShop += t.amount;
+                if(t.date > lastReset) purpleEvent += t.amount;
+            }
+        });
+    }
+
+    return { 
+        blue: Math.max(0, blue), 
+        purpleEvent: Math.max(0, purpleEvent), 
+        purpleShop: Math.max(0, purpleShop),
+        lifetime 
+    };
+}
+
+function calcLevel(points) { return Math.floor(points / 50) + 1; }
+
+function getActiveBans(cId, dateObj) {
+    const c = state.children.find(x=>x.id===cId);
+    if(!c || !c.bans) return [];
+    const dStr = getFDate(dateObj);
+    return c.bans.filter(b => dStr >= b.start && dStr <= b.end);
+}
+
+function saveNote() {
+    const c = state.children.find(x => x.id === activeChildId);
+    if (c) {
+        c.note = document.getElementById('childNote').value;
+        saveData();
+    }
+}
+
+function clearNote() {
+    if(confirm('Notiz wirklich löschen?')) {
+        document.getElementById('childNote').value = '';
+        saveNote();
+    }
+}
+
+function startDictation() {
+    if (window.hasOwnProperty('SpeechRecognition') || window.hasOwnProperty('webkitSpeechRecognition')) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'de-DE';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = function() { document.getElementById('childNote').placeholder = "Zuhören... Bitte sprechen!"; };
+        recognition.onresult = function(e) {
+            const text = e.results[0][0].transcript;
+            const ta = document.getElementById('childNote');
+            ta.value = ta.value ? ta.value + ' ' + text : text;
+            saveNote();
+            ta.placeholder = "Notizen zum Verhalten...";
+        };
+        recognition.onerror = function(e) {
+            alert('Fehler bei der Spracherkennung: ' + e.error);
+            document.getElementById('childNote').placeholder = "Notizen zum Verhalten...";
+        };
+        recognition.onend = function() { document.getElementById('childNote').placeholder = "Notizen zum Verhalten..."; }
+        recognition.start();
+    } else {
+        alert('Spracherkennung wird von diesem Browser leider nicht unterstützt.');
+    }
+}
+
+function changeTally(bId, delta) {
+    const dStr = getFDate(uiDate);
+    if(!state.tallies) state.tallies = [];
+    
+    let t = state.tallies.find(x => x.date === dStr && x.childId === activeChildId && x.behavId === bId);
+    if(!t) {
+        t = { date: dStr, childId: activeChildId, behavId: bId, count: 0 };
+        state.tallies.push(t);
+    }
+    
+    t.count += delta;
+    saveData();
+    updateUI(); 
+}
+
+function updateUI() {
+    if(!activeChildId) return;
+    const c = state.children.find(x=>x.id===activeChildId);
+    if(!c) return;
+    
+    const bal = getBalances(c.id);
+    const lvl = calcLevel(bal.lifetime);
+
+    document.getElementById('headAvatar').innerText = c.avatar;
+    document.getElementById('headName').innerText = c.name;
+    document.getElementById('headScoreBlue').innerText = bal.blue;
+    document.getElementById('headScorePurple').innerText = bal.purpleEvent; 
+
+    const today = getFDate(new Date());
+    const curr = getFDate(uiDate);
+    document.getElementById('dateDisplay').innerText = (curr===today) ? "Heute" : formatDateDE(curr);
+
+    if(c.note === undefined) c.note = '';
+    document.getElementById('childNote').value = c.note;
+
+    const bans = getActiveBans(c.id, uiDate);
+    const sBox = document.getElementById('statusContainer');
+    if(bans.length > 0) {
+        let h = `<div class="status-box warn"><div style="font-size:2.5rem">🚫</div><div><b>ACHTUNG EINSCHRÄNKUNG!</b>`;
+        bans.forEach(b => h+=`<div style="font-weight:600;">- ${b.title}</div>`);
+        sBox.innerHTML = h+"</div></div>";
+    } else {
+        sBox.innerHTML = `<div class="status-box ok"><div style="font-size:2.5rem">✅</div><div><b>FREIE FAHRT</b><br>Alles okay! Keine Einschränkungen.</div></div>`;
+    }
+
+    const syncBanner = document.getElementById('teamSyncBanner');
+    if(checkTeamSync(curr)) {
+        syncBanner.classList.remove('hidden');
+    } else {
+        syncBanner.classList.add('hidden');
+    }
+
+    const tvDiv = document.getElementById('licenseContainer');
+    if(state.settings && state.settings.tvEnabled) {
+        tvDiv.classList.remove('hidden');
+        
+        let dToday = new Date(uiDate);
+        let dYest = new Date(uiDate); dYest.setDate(dYest.getDate()-1);
+        const strToday = getFDate(dToday);
+        const strYest = getFDate(dYest);
+        
+        let sumToday = 0; let sumYest = 0;
+        
+        if(state.logs) {
+            state.logs.forEach(l => {
+                if(l.childId === c.id) {
+                    const b = state.behaviors ? state.behaviors.find(x=>x.id===l.behavId) : null;
+                    if(b && b.type==='social') {
+                        let pts = l.val;
+                        if(pts > 0) {
+                            if(l.date === strToday) sumToday += pts;
+                            if(l.date === strYest) sumYest += pts;
+                        }
+                    }
+                }
+            });
+        }
+        
+        const lb = document.getElementById('licenseBox');
+        const lt = document.getElementById('licenseText');
+        const thresh = parseInt(state.settings.tvThreshold) || 3;
+        let totalSum = sumToday + sumYest;
+
+        if(totalSum >= thresh) { 
+            lb.className = 'license-box active'; 
+            lt.innerHTML = `<b>TV LIZENZ AKTIV</b><br><span style="font-size:0.85rem">Ziel erreicht! (Summe: ${totalSum}/${thresh} Pkt)</span>`; 
+        } else { 
+            lb.className = 'license-box inactive'; 
+            lt.innerHTML = `<b>TV LIZENZ INAKTIV</b><br><span style="font-size:0.85rem">Noch sammeln! (Summe: ${totalSum}/${thresh} Pkt)</span>`; 
+        }
+    } else {
+        tvDiv.classList.add('hidden');
+    }
+
+    renderTrackerLists();
+    
+    document.getElementById('shopScoreGen').innerText = bal.blue;
+    document.getElementById('shopScoreSoz').innerText = bal.purpleShop;
+    renderShop();
+
+    document.getElementById('dispCash').innerText = parseFloat(c.money.cash).toFixed(2) + ' €';
+    document.getElementById('dispSave').innerText = parseFloat(c.money.savings).toFixed(2) + ' €';
+    
+    const gCont = document.getElementById('goalContainer');
+    if(state.settings && state.settings.goalEnabled && c.goal && c.goal.amount > 0) {
+        const saved = c.money.savings;
+        const target = parseFloat(c.goal.amount);
+        const pct = Math.min(100, (saved/target)*100);
+        gCont.innerHTML = `
+        <div class="goal-box">
+            <div style="font-weight:900; font-size:1.2rem; display:flex; justify-content:space-between;">
+                <span>🎯 Ziel: ${c.goal.name}</span>
+                <span style="color:var(--c-green)">${target.toFixed(2)}€</span>
+            </div>
+            <div class="goal-prog">
+                <div class="goal-bar-fill" style="width:${pct}%"></div>
+            </div>
+            <div style="text-align:center; font-size:0.95rem; font-weight:600;">
+                Du hast ${pct.toFixed(0)}% für dein/e "${c.goal.name}" in deinem Sparschwein erreicht!
+            </div>
+        </div>`;
+    } else {
+        gCont.innerHTML = '';
+    }
+
+    renderMoneyHistory();
+    document.getElementById('exchangeBtnContainer').innerHTML = (state.settings && state.settings.exEnabled) ? `<button class="btn btn-p" onclick="openExchange()" style="padding:15px; font-size:1.1rem;">🔄 🔵 Coins in Taschengeld wechseln</button>` : '';
+
+    if(state.event) {
+        document.getElementById('evtName').innerText = state.event.title;
+        document.getElementById('evtDate').innerText = formatDateDE(state.event.date);
+        const diff = Math.ceil((new Date(state.event.date) - new Date())/(1000*60*60*24));
+        document.getElementById('evtCountdown').innerText = diff < 0 ? "VORBEI!" : diff + " TAGE";
+    }
+    renderTeamGrid();
+    renderOverview();
+}
+
+function renderOverview() {
+    const list = document.getElementById('overviewList');
+    if(!list) return;
+    
+    const dateStr = formatDateDE(getFDate(new Date()));
+    document.getElementById('overviewDateDisplay').innerText = "Stand: " + dateStr;
+
+    list.innerHTML = '';
+    if(!state.children) return;
+    
+    state.children.forEach(c => {
+        const bal = getBalances(c.id);
+        const lvl = calcLevel(bal.lifetime);
+        list.innerHTML += `
+        <div class="overview-card">
+            <div style="display:flex; align-items:center; gap:15px;">
+                <div style="font-size:3.5rem;">${c.avatar}</div>
+                <div>
+                    <div style="font-size:1.8rem; font-family:'Bangers'; line-height:1;">${c.name}</div>
+                    <div style="font-size:0.8rem; font-weight:bold; color:#666;">Level ${lvl}</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <div class="ov-badge" style="background:#eff6ff;">
+                    <div style="font-size:1.8rem; font-family:'Bangers'; color:var(--c-blue);">${bal.blue}</div>
+                    <div style="font-size:0.7rem; font-weight:bold;">COINS</div>
+                </div>
+                <div class="ov-badge" style="background:#fdf4ff;">
+                    <div style="font-size:1.8rem; font-family:'Bangers'; color:var(--c-purple);">${bal.purpleEvent}</div>
+                    <div style="font-size:0.7rem; font-weight:bold;">EVENT</div>
+                </div>
+                <div class="ov-badge" style="background:#fdf4ff;">
+                    <div style="font-size:1.8rem; font-family:'Bangers'; color:var(--c-purple);">${bal.purpleShop}</div>
+                    <div style="font-size:0.7rem; font-weight:bold;">SHOP</div>
+                </div>
+            </div>
+        </div>
+        `;
+    });
+}
+
+function renderTrackerLists() {
+    const dStr = getFDate(uiDate);
+    ['general', 'social'].forEach(type => {
+        const div = document.getElementById(type==='general' ? 'listGeneral' : 'listSocial');
+        div.innerHTML = '';
+        
+        let items = [];
+        if(state.behaviors) {
+            items = state.behaviors.filter(b => {
+                if (b.type !== type) return false;
+                if (!b.assignedTo || b.assignedTo.length === 0) return true; 
+                if (typeof b.assignedTo === 'string') return b.assignedTo === activeChildId;
+                if (Array.isArray(b.assignedTo)) return b.assignedTo.includes(activeChildId);
+                return true;
+            });
+        }
+        
+        if(items.length === 0) div.innerHTML = '<div style="color:#666; font-style:italic;">Keine Ziele eingetragen.</div>';
+
+        items.forEach(b => {
+            const log = state.logs ? state.logs.find(l => l.date === dStr && l.childId === activeChildId && l.behavId === b.id) : null;
+            const val = log ? log.val : -2; 
+            
+            const tallyObj = state.tallies ? state.tallies.find(t => t.date === dStr && t.childId === activeChildId && t.behavId === b.id) : null;
+            const tallyCount = tallyObj ? tallyObj.count : 0;
+            
+            const isJackpotActive = (val === 4 || val === 8);
+            const displayVal = val === 8 ? "⭐8" : "⭐4";
+
+            div.innerHTML += `
+            <div class="behavior-item">
+                <div class="tally-wrap">
+                    <div class="b-title">${b.title}</div>
+                    <div class="tally-box">
+                        <button class="tally-btn minus" onclick="changeTally('${b.id}', -1)">-</button>
+                        <div class="tally-val" style="color:${tallyCount>0?'var(--c-green)':(tallyCount<0?'var(--c-red)':'#000')}">${tallyCount>0?'+'+tallyCount:tallyCount}</div>
+                        <button class="tally-btn plus" onclick="changeTally('${b.id}', 1)">+</button>
+                    </div>
+                </div>
+                <div class="score-controls">
+                    <button class="score-btn na ${val===-1?'active':''}" data-v="-1" onclick="setPoint('${b.id}', -1)" title="Entfällt heute">Ø</button>
+                    <button class="score-btn ${val===0?'active':''}" data-v="0" onclick="setPoint('${b.id}', 0)">0</button>
+                    <button class="score-btn ${val===1?'active':''}" data-v="1" onclick="setPoint('${b.id}', 1)">1</button>
+                    <button class="score-btn ${val===2?'active':''}" data-v="2" onclick="setPoint('${b.id}', 2)">2</button>
+                    ${b.hasJackpot ? `<button class="score-btn ${isJackpotActive?'active':''}" data-v="4" onclick="setPoint('${b.id}', 4)" title="Super-Bonus!">${displayVal}</button>` : ''}
+                </div>
+            </div>`;
+        });
+    });
+}
+
+function setPoint(bId, val) {
+    const dStr = getFDate(uiDate);
+    if(!state.logs) state.logs = [];
+    state.logs = state.logs.filter(l => !(l.date === dStr && l.childId === activeChildId && l.behavId === bId));
+    state.logs.push({date: dStr, childId: activeChildId, behavId: bId, val: val});
+    
+    applyTeamSync(dStr);
+    saveData(); 
+    updateUI(); 
+}
+
+function openMoneyModal() { toggleMoneyInputs(); document.getElementById('moneyModal').classList.add('open'); }
+function toggleMoneyInputs() {
+    const a = document.getElementById('monAction').value;
+    document.getElementById('divTarget').style.display = (a==='deposit') ? 'block' : 'none';
+    document.getElementById('divSource').style.display = (a==='spend') ? 'block' : 'none';
+    document.getElementById('divTransfer').style.display = (a==='transfer') ? 'block' : 'none';
+}
+function doMoneyTransaction() {
+    const act = document.getElementById('monAction').value;
+    const reason = document.getElementById('monReason').value;
+    const amt = parseFloat(document.getElementById('monVal').value);
+    
+    if(!reason || isNaN(amt) || amt <= 0) return alert("Bitte alle Felder korrekt ausfüllen.");
+    const c = state.children.find(x => x.id === activeChildId);
+    let srcLabel = "";
+    
+    if(!c.money.history) c.money.history = [];
+
+    if(act === 'deposit') {
+        const t = document.getElementById('monTarget').value;
+        if(t==='cash') { c.money.cash += amt; srcLabel="Bar"; }
+        else { c.money.savings += amt; srcLabel="Spar"; }
+        c.money.history.push({date:getFDate(new Date()), type:'income', amount:amt, note:reason, source: srcLabel});
+    } else if(act === 'spend') {
+        const s = document.getElementById('monSource').value;
+        if(s==='cash') {
+            if(c.money.cash < amt) return alert("Nicht genug Bargeld vorhanden!");
+            c.money.cash -= amt; srcLabel="Bar";
+        } else {
+            if(c.money.savings < amt) return alert("Nicht genug Geld im Sparschwein!");
+            c.money.savings -= amt; srcLabel="Spar";
+        }
+        c.money.history.push({date:getFDate(new Date()), type:'expense', amount:amt, note:reason, source: srcLabel});
+    } else if(act === 'transfer') {
+        const dir = document.getElementById('monDirect').value;
+        if(dir === 'c2s') {
+            if(c.money.cash < amt) return alert("Nicht genug Bargeld vorhanden!");
+            c.money.cash -= amt; c.money.savings += amt;
+            c.money.history.push({date:getFDate(new Date()), type:'transfer', amount:amt, note:reason, source:'Bar ➜ Spar'});
+        } else {
+            if(c.money.savings < amt) return alert("Nicht genug Geld im Sparschwein!");
+            c.money.savings -= amt; c.money.cash += amt;
+            c.money.history.push({date:getFDate(new Date()), type:'transfer', amount:amt, note:reason, source:'Spar ➜ Bar'});
+        }
+    }
+    
+    saveData(); document.getElementById('moneyModal').classList.remove('open');
+    document.getElementById('monReason').value = '';
+    document.getElementById('monVal').value = '';
+}
+
+function renderMoneyHistory() {
+    const d = document.getElementById('moneyHistory'); d.innerHTML = '';
+    const c = state.children.find(x=>x.id===activeChildId);
+    if(!c.money || !c.money.history || c.money.history.length===0) { d.innerHTML = "<p>Noch keine Buchungen.</p>"; return; }
+    
+    c.money.history.slice().reverse().slice(0,15).forEach(h => {
+        let isInc = (h.type==='income' || h.type==='exchange_in');
+        let sign = isInc ? '+' : (h.type==='transfer'?'↔':'-');
+        let col = isInc ? 'var(--c-green)' : (h.type==='transfer'?'var(--c-blue)':'var(--c-red)');
+        let srcTxt = h.source ? `(${h.source})` : '';
+        
+        d.innerHTML += `
+        <div class="m-hist-item">
+            <div style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                <b>${formatDateDE(h.date)}</b> ${h.note} <span style="font-size:0.8rem; color:#666;">${srcTxt}</span>
+            </div>
+            <div style="font-weight:900; font-size:1.1rem; color:${col}; margin-left:10px;">
+                ${sign} ${h.amount.toFixed(2)}€
+            </div>
+        </div>`;
+    });
+}
+
+function openExchange() { 
+    document.getElementById('exRateDisplay').innerText=state.settings.exRate; 
+    document.getElementById('exCoins').value=''; 
+    document.getElementById('exPreview').innerText='0,00 €'; 
+    const bal = getBalances(activeChildId).blue;
+    document.getElementById('exCurrentCoins').innerText=bal;
+    document.getElementById('exchangeModal').classList.add('open'); 
+}
+function calcExPreview() {
+    const c = parseInt(document.getElementById('exCoins').value)||0;
+    document.getElementById('exPreview').innerText = (c/state.settings.exRate).toFixed(2) + ' €';
+}
+function doExchange() {
+    const coins = parseInt(document.getElementById('exCoins').value);
+    if(isNaN(coins)||coins<=0) return;
+    if(getBalances(activeChildId).blue < coins) return alert("Nicht genug Spur-Coins!");
+    const eur = coins/state.settings.exRate;
+    const c = state.children.find(x=>x.id===activeChildId);
+    if(!state.exchange) state.exchange=[];
+    state.exchange.push({date:getFDate(new Date()), childId:activeChildId, coins:coins, euro:eur});
+    
+    if(!c.money.history) c.money.history = [];
+    c.money.cash += eur;
+    c.money.history.push({date:getFDate(new Date()), type:'exchange_in', amount:eur, note:`Wechselstube (${coins} Coins)`, source:'Bar'});
+    
+    saveData(); document.getElementById('exchangeModal').classList.remove('open'); 
+}
+
+function renderTeamGrid() {
+    const g = document.getElementById('teamGrid');
+    g.innerHTML = '';
+    if(!state.children || !state.event) return;
+    state.children.forEach(c => {
+        const b = getBalances(c.id); const t = state.event.target; const pct = Math.min(100,(b.purpleEvent/t)*100);
+        const done = b.purpleEvent >= t;
+        g.innerHTML += `
+        <div class="team-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="team-big-text"><span style="font-size:2.5rem">${c.avatar}</span> ${c.name}</div>
+                <div class="team-pts">${b.purpleEvent}/${t}</div>
+            </div>
+            <div style="height:25px;background:#fff;margin-top:10px;border:3px solid black;border-radius:15px;overflow:hidden;box-shadow:inset 2px 2px 5px rgba(0,0,0,0.2);">
+                <div style="height:100%;width:${pct}%;background:${done?'var(--c-green)':'var(--c-purple)'}; border-right:3px solid black;"></div>
+            </div>
+            ${done?`<button class="btn btn-ghost" onclick="resetEvent('${c.id}')" style="margin-top:10px; border:2px solid #000;">Event abgeschlossen - Reset!</button>`:''}
+        </div>`;
+    });
+    const opts = state.children.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    document.getElementById('trFrom').innerHTML = opts;
+    document.getElementById('trTo').innerHTML = opts;
+}
+function doTransfer() {
+    const f = document.getElementById('trFrom').value;
+    const t = document.getElementById('trTo').value;
+    const a = parseInt(document.getElementById('trAmt').value);
+    if(f===t || a<=0) return alert("Bitte wähle zwei verschiedene Kinder aus.");
+    if(getBalances(f).purpleShop<a) return alert("Nicht genug Sozial-Punkte zum Übertragen.");
+    if(!state.transfers) state.transfers = [];
+    state.transfers.push({date:getFDate(new Date()), from:f, to:t, amount:a});
+    saveData(); alert("Punkte erfolgreich übertragen!");
+}
+function resetEvent(cId) { 
+    if(confirm('Sollen die Event-Punkte für dieses Kind nach dem Event wieder auf 0 gesetzt werden? (Shop-Punkte bleiben erhalten)')) { 
+        if(!state.eventResets) state.eventResets = {};
+        state.eventResets[cId] = getFDate(new Date()); 
+        saveData(); 
+    }
+}
+
+function renderShop() {
+    const d = document.getElementById('shopList');
+    d.innerHTML = '';
+    const balBlue = getBalances(activeChildId).blue;
+    const balPurpleShop = getBalances(activeChildId).purpleShop;
+    
+    if(state.shopItems) {
+        state.shopItems.forEach(s => {
+            let isSocial = s.currency === 'social';
+            let can = isSocial ? (balPurpleShop >= s.cost) : (balBlue >= s.cost);
+            let col = isSocial ? 'var(--c-purple)' : 'var(--c-blue)';
+            let icon = isSocial ? '🟣 Sozial' : '🔵 Coins';
+            
+            const safeTitle = (s.title || "").replace(/'/g, "\'");
+
+            d.innerHTML += `
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:15px; margin-bottom:10px; border-radius:15px;">
+                <div><b style="font-size:1.2rem;">${s.title}</b><br><span style="color:${col}; font-weight:800; font-size:1.1rem;">${s.cost} ${icon}</span></div>
+                <button class="btn ${can?'btn-p':'btn-ghost'}" style="width:auto; padding:10px 20px; margin:0;" onclick="buy('${safeTitle}',${s.cost},'${s.currency}')" ${!can?'disabled':''}>Holen</button>
+            </div>`;
+        });
+    }
+    if(state.purchases) {
+        document.getElementById('shopHistory').innerHTML = state.purchases.filter(p=>p.childId===activeChildId).reverse().slice(0,5).map(p=>{
+            let col = p.currency === 'social' ? '🟣' : '🔵';
+            return `<div style="font-size:1rem; border-bottom:2px dashed #eee; padding:10px 0;"><b>${formatDateDE(p.date)}</b>: ${p.title} (${p.cost} ${col})</div>`;
+        }).join('');
+    }
+}
+function buy(t,c,currency) { 
+    if(confirm(`Möchtest du "${t}" wirklich kaufen? (Konto Event bleibt unberührt)`)) { 
+        if(!state.purchases) state.purchases = [];
+        state.purchases.push({date:getFDate(new Date()), childId:activeChildId, title:t, cost:c, currency:currency||'general'}); 
+        saveData(); 
+    }
+}
+
+function prepareStats() {
+    const b = document.getElementById('statFilters');
+    b.innerHTML = '';
+    if(!state.behaviors) return;
+    
+    state.behaviors.forEach((beh, idx) => {
+        const col = COLORS[idx % COLORS.length];
+        const btn = document.createElement('button');
+        btn.className = 'stat-btn active';
+        btn.innerText = beh.title;
+        btn.dataset.id = beh.id;
+        btn.dataset.col = col;
+        btn.style.backgroundColor = col;
+        btn.style.color = '#fff';
+        btn.style.borderColor = col;
+
+        btn.onclick = function() {
+            this.classList.toggle('active');
+            if(this.classList.contains('active')) {
+                this.style.backgroundColor = this.dataset.col;
+                this.style.color = '#fff';
+            } else {
+                this.style.backgroundColor = '#fff';
+                this.style.color = '#000';
+            }
+            drawStats();
+        };
+        b.appendChild(btn);
+    });
+    drawStats();
+}
+
+function selectAllStats() {
+    document.querySelectorAll('#statFilters .stat-btn').forEach(btn => {
+        btn.classList.add('active');
+        btn.style.backgroundColor = btn.dataset.col;
+        btn.style.color = '#fff';
+    });
+    drawStats();
+}
+
+function drawStats() {
+    const start = document.getElementById('statStart').value;
+    const end = document.getElementById('statEnd').value;
+    const btns = Array.from(document.querySelectorAll('#statFilters .stat-btn.active'));
+    
+    document.getElementById('printRange').innerText = `Zeitraum: ${formatDateDE(start)} - ${formatDateDE(end)}`;
+    
+    const cvsContainer = document.getElementById('canvasContainer');
+    const cvs = document.getElementById('statCanvas'); 
+    const ctx = cvs.getContext('2d');
+    
+    const dpr = window.devicePixelRatio || 1;
+    const rect = cvsContainer.getBoundingClientRect();
+    const W = rect.width;
+    const H = 300;
+    
+    cvs.width = W * dpr;
+    cvs.height = H * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0,0,W,H);
+    
+    let dates = [];
+    let curr = new Date(start); const last = new Date(end);
+    while(curr <= last) { dates.push(getFDate(curr)); curr.setDate(curr.getDate()+1); }
+    
+    ctx.strokeStyle="#e2e8f0"; ctx.lineWidth=2;
+    for(let i=0; i<=5; i++) {
+        let y = 30 + i*((H-60)/5);
+        ctx.beginPath(); ctx.moveTo(30,y); ctx.lineTo(W,y); ctx.stroke();
+    }
+
+    let legendHtml = '';
+    let maxVal = 5; 
+
+    if(state.logs) {
+        btns.forEach(btn => {
+            dates.forEach(d => {
+                const log = state.logs.find(l => l.date===d && l.childId===activeChildId && l.behavId===btn.dataset.id);
+                if(log) {
+                    let logV = log.val;
+                    if(logV > maxVal) maxVal = logV;
+                }
+            });
+        });
+    }
+
+    btns.forEach((btn, idx) => {
+        const color = btn.dataset.col;
+        const bId = btn.dataset.id;
+        
+        legendHtml += `<div style="background-color:${color}; color:#fff; border:2px solid ${color}; border-radius:20px; padding:6px 12px; font-weight:700; font-size:0.9rem; display:inline-block; margin:3px; box-shadow:2px 2px 0 #000;">${btn.innerText}</div>`;
+
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 4;
+        const jitter = (idx % 3) * 3; 
+
+        dates.forEach((d, i) => {
+            const x = 30 + i * ((W-40)/(dates.length-1 || 1));
+            const log = state.logs ? state.logs.find(l => l.date===d && l.childId===activeChildId && l.behavId===bId) : null;
+            let val = 0;
+            if(log && log.val > 0) val = log.val;
+            
+            const y = H - 30 - (val / maxVal)*(H-60) - jitter;
+            
+            if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+            
+            ctx.fillStyle = color; 
+            ctx.fillRect(x-4, y-4, 8, 8);
+        });
+        ctx.stroke();
+    });
+    
+    ctx.fillStyle="#000"; ctx.font="bold 12px Fredoka";
+    dates.forEach((d,i) => { 
+        if(dates.length<15 || i%Math.ceil(dates.length/10)===0) {
+            const x = 30 + i * ((W-40)/(dates.length-1 || 1));
+            ctx.fillText(d.split('-')[2], x-6, H-5); 
+        }
+    });
+
+    document.getElementById('statLegend').innerHTML = legendHtml;
+}
+
+function renderSettingsLists() {
+    document.getElementById('setTvToggle').checked = state.settings.tvEnabled;
+    document.getElementById('setTvThreshold').value = state.settings.tvThreshold;
+    document.getElementById('setExToggle').checked = state.settings.exEnabled;
+    document.getElementById('setExRate').value = state.settings.exRate;
+    document.getElementById('setGoalToggle').checked = state.settings.goalEnabled;
+    
+    const cOpts = state.children ? state.children.map(c=>`<option value="${c.id}">${c.name}</option>`).join('') : '';
+    document.getElementById('goalChildSelect').innerHTML = cOpts;
+    renderGoalSetting();
+
+    if(state.children) {
+        document.getElementById('setChildList').innerHTML = state.children.map(c => `
+            <div style="border:var(--border); border-radius:15px; padding:15px; margin-bottom:10px; background:white; box-shadow:var(--shadow-sm);">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:10px;"><span style="font-size:2rem">${c.avatar}</span> <b style="font-size:1.2rem;">${c.name}</b></div>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn btn-p" style="width:auto; padding:8px;" onclick="openEditChild('${c.id}')">✏️</button>
+                        <button type="button" class="btn btn-warn" style="width:auto; padding:8px;" onclick="addBanModal('${c.id}')">🚫</button>
+                        <button class="btn btn-d" style="width:auto; padding:8px;" onclick="delChild('${c.id}')">🗑</button>
+                    </div>
+                </div>
+                ${(c.bans||[]).map(b=>`
+                <div style="background:#fecaca; border:2px solid #000; padding:5px; margin-top:5px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <b>${b.title}</b> <small>(bis ${formatDateDE(b.end)})</small>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn" style="width:auto;margin:0;padding:2px 10px;background:white;color:black;border:2px solid #000;" onclick="openEditBanModal('${c.id}', ${b.id})">✏️</button>
+                        <button class="btn" style="width:auto;margin:0;padding:2px 10px;background:white;color:red;border:2px solid #000;" onclick="delBan('${c.id}',${b.id})">X</button>
+                    </div>
+                </div>`).join('')}
+            </div>
+        `).join('');
+    }
+
+    if(state.event) {
+        document.getElementById('setEvtTitle').value = state.event.title;
+        document.getElementById('setEvtDate').value = state.event.date;
+        document.getElementById('setEvtTarget').value = state.event.target;
+    }
+
+    if(state.behaviors) {
+        document.getElementById('setBehavList').innerHTML = state.behaviors.map(b => {
+            let typeBadge = b.type==='social' ? '<span style="background:var(--c-purple);color:white;padding:2px 5px;border-radius:5px;font-size:0.7rem;border:1px solid #000;">🟣 SOZIAL</span>' : '<span style="background:var(--c-blue);color:white;padding:2px 5px;border-radius:5px;font-size:0.7rem;border:1px solid #000;">🔵 COIN</span>';
+            let assignText = '';
+            if (b.assignedTo && b.assignedTo.length > 0) {
+                if (typeof b.assignedTo === 'string') { 
+                    const assignedChild = state.children.find(x=>x.id===b.assignedTo);
+                    if(assignedChild) assignText = `<br><small>(Nur ${assignedChild.name})</small>`;
+                } else if (Array.isArray(b.assignedTo)) { 
+                    const names = b.assignedTo.map(id => state.children.find(x=>x.id===id)?.name).filter(Boolean);
+                    if(names.length > 0 && names.length < state.children.length) {
+                        assignText = `<br><small>(Nur ${names.join(', ')})</small>`;
+                    }
+                }
+            }
+            
+            let jpBadge = b.hasJackpot ? ' <span style="background:var(--c-yellow);color:#000;padding:2px 5px;border-radius:5px;font-size:0.7rem;border:1px solid #000;">⭐ JP</span>' : '';
+
+            return `
+            <div style="border-bottom:2px dashed #000; padding:10px 5px; display:flex; justify-content:space-between; align-items:center;">
+                <div><b>${b.title}</b> ${jpBadge} ${assignText}<br>${typeBadge}</div>
+                <div style="display:flex; gap:5px;">
+                    <button class="btn" style="width:auto; padding:5px 15px; margin:0;" onclick="openEditBehavModal('${b.id}')">✏️</button>
+                    <button class="btn" style="width:auto; padding:5px 15px; margin:0; color:red;" onclick="delBehav('${b.id}')">X</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+    
+    if(state.shopItems) {
+        document.getElementById('setShopList').innerHTML = state.shopItems.map(s => {
+            let col = s.currency === 'social' ? '🟣' : '🔵';
+            return `
+            <div style="border-bottom:2px dashed #000; padding:10px 5px; display:flex; justify-content:space-between; align-items:center;">
+                <b>${s.title} (${s.cost} ${col})</b>
+                <button class="btn" style="width:auto; padding:5px 15px; margin:0; color:red;" onclick="delShop('${s.id}')">X</button>
+            </div>`;
+        }).join('');
+    }
+    
+    const assignCheckboxes = state.children ? state.children.map(c=>`
+        <label class="cb-label">
+            <input type="checkbox" value="${c.id}" class="behav-assign-cb"> ${c.name}
+        </label>
+    `).join('') : '';
+    document.getElementById('newBehavAssignGroup').innerHTML = assignCheckboxes;
+}
+
+function renderGoalSetting() {
+    const cid = document.getElementById('goalChildSelect').value;
+    const c = state.children.find(x=>x.id===cid);
+    const div = document.getElementById('currentGoalDisplay');
+    if(c && c.goal && c.goal.name) {
+        div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><span>Aktuell: <b>${c.goal.name}</b> (${c.goal.amount}€)</span> <button class="btn btn-d" style="width:auto; margin:0; padding:5px 10px;" onclick="delGoal('${c.id}')">Löschen</button></div>`;
+    } else {
+        div.innerHTML = 'Kein Sparziel gesetzt.';
+    }
+}
+function setGoal() {
+    const cid = document.getElementById('goalChildSelect').value;
+    const name = document.getElementById('newGoalName').value;
+    const amt = parseFloat(document.getElementById('newGoalCost').value);
+    if(name && amt > 0) {
+        const c = state.children.find(x=>x.id===cid);
+        c.goal = {name:name, amount:amt};
+        saveData(); renderGoalSetting();
+        document.getElementById('newGoalName').value = '';
+        document.getElementById('newGoalCost').value = '';
+    }
+}
+function delGoal(cid) {
+    state.children.find(x=>x.id===cid).goal = null;
+    saveData(); renderGoalSetting();
+}
+
+function addBanModal(cId) { 
+    try {
+        editBanChildId = cId; 
+        editBanId = null; 
+        const childName = state.children.find(x => x.id === cId).name;
+        document.getElementById('banChildLabel').innerText = "Neues Verbot für: " + childName; 
+        document.getElementById('banTitle').value = ''; 
+        document.getElementById('banStart').value = ''; 
+        document.getElementById('banEnd').value = ''; 
+        document.getElementById('banModal').classList.add('open'); 
+    } catch(e) { console.error("Fehler beim Öffnen", e); }
+}
+
+function openEditBanModal(cId, bId) {
+    editBanChildId = cId;
+    editBanId = bId;
+    const c = state.children.find(x => x.id === cId);
+    const b = c.bans.find(x => x.id === bId);
+    document.getElementById('banChildLabel').innerText = "Bearbeiten für: " + c.name; 
+    document.getElementById('banTitle').value = b.title; 
+    document.getElementById('banStart').value = b.start; 
+    document.getElementById('banEnd').value = b.end; 
+    document.getElementById('banModal').classList.add('open'); 
+}
+
+function saveBan() {
+    const t = document.getElementById('banTitle').value; 
+    const s = document.getElementById('banStart').value; 
+    const e = document.getElementById('banEnd').value;
+    
+    if(!t || !s || !e) return alert("Bitte alle Felder ausfüllen!");
+    
+    const c = state.children.find(x => x.id === editBanChildId);
+    if(!c.bans) c.bans = [];
+    
+    if(editBanId !== null) {
+        const b = c.bans.find(x => x.id === editBanId);
+        if(b) {
+            b.title = t; b.start = s; b.end = e;
+        }
+    } else {
+        c.bans.push({id: Date.now(), title: t, start: s, end: e});
+    }
+    
+    saveData(); 
+    document.getElementById('banModal').classList.remove('open');
+    updateUI(); 
+    renderSettingsLists(); 
+}
+
+function delBan(cId, bId) {
+    const c = state.children.find(x=>x.id===cId);
+    c.bans = c.bans.filter(b => b.id != bId);
+    saveData(); renderSettingsLists(); updateUI();
+}
+
+function openEditChild(id) {
+    const c = state.children.find(x => x.id === id);
+    if(!c) return;
+    document.getElementById('editCId').value = c.id;
+    document.getElementById('editCName').value = c.name;
+    document.getElementById('editTgAmount').value = c.money ? c.money.amount : 0;
+    document.getElementById('editTgInterval').value = c.money ? c.money.interval : 'Woche';
+    editSelectedAvatar = c.avatar;
+    renderEditAvatars();
+    document.getElementById('editChildModal').classList.add('open');
+}
+function renderEditAvatars() {
+    document.getElementById('editAvatarGrid').innerHTML = AVATARS.map(a=>`<div class="av-opt ${editSelectedAvatar===a?'selected':''}" onclick="editSelectedAvatar='${a}';renderEditAvatars();">${a}</div>`).join('');
+}
+function saveEditChild() {
+    const id = document.getElementById('editCId').value;
+    const n = document.getElementById('editCName').value;
+    const amt = document.getElementById('editTgAmount').value;
+    const ival = document.getElementById('editTgInterval').value;
+    if(!n) return alert("Name fehlt");
+    
+    const c = state.children.find(x => x.id === id);
+    c.name = n;
+    c.avatar = editSelectedAvatar;
+    if(!c.money) c.money = {cash:0, savings:0, history:[], lastPaidWeek: getIsoWeek(new Date()), lastPaidMonth: getIsoMonth(new Date())};
+    c.money.amount = amt || 0;
+    c.money.interval = ival;
+    
+    saveData(); document.getElementById('editChildModal').classList.remove('open');
+}
+
+function addChild() {
+    const n = document.getElementById('newCName').value;
+    if(!n) return alert("Name fehlt");
+    if(!state.children) state.children = [];
+    state.children.push({
+        id:'c'+Date.now(), name:n, avatar:selectedAvatar, 
+        initBlue:document.getElementById('initB').value||0, initPurple:document.getElementById('initP').value||0, bans:[],
+        money: {
+            amount: document.getElementById('tgAmount').value || 0,
+            interval: document.getElementById('tgInterval').value,
+            cash:0, savings:0, history:[],
+            lastPaidWeek: getIsoWeek(new Date()), lastPaidMonth: getIsoMonth(new Date())
+        }, goal:null, lastPayDate: '', note: ''
+    });
+    saveData();
+    document.getElementById('newCName').value=''; document.getElementById('initB').value=''; document.getElementById('initP').value=''; document.getElementById('tgAmount').value='';
+}
+function delChild(id) { if(confirm('Wirklich das Kind inklusive aller Punkte löschen?')) { state.children=state.children.filter(x=>x.id!==id); saveData(); }}
+
+function openEditBehavModal(bId) {
+    const b = state.behaviors.find(x => x.id === bId);
+    if(!b) return;
+    document.getElementById('editBId').value = b.id;
+    document.getElementById('editBTitle').value = b.title;
+    document.getElementById('editBType').value = b.type;
+    document.getElementById('editBJackpot').checked = !!b.hasJackpot;
+    
+    const assignCheckboxes = state.children ? state.children.map(c=>{
+        let isChecked = false;
+        if(b.assignedTo) {
+            if(typeof b.assignedTo === 'string' && b.assignedTo === c.id) isChecked = true;
+            if(Array.isArray(b.assignedTo) && b.assignedTo.includes(c.id)) isChecked = true;
+        }
+        return `<label class="cb-label"><input type="checkbox" value="${c.id}" class="edit-behav-assign-cb" ${isChecked?'checked':''}> ${c.name}</label>`;
+    }).join('') : '';
+    
+    document.getElementById('editBehavAssignGroup').innerHTML = assignCheckboxes;
+    document.getElementById('editBehavModal').classList.add('open');
+}
+
+function saveEditBehav() {
+    const id = document.getElementById('editBId').value;
+    const t = document.getElementById('editBTitle').value;
+    if(!t) return alert("Titel fehlt");
+    
+    const checkboxes = document.querySelectorAll('.edit-behav-assign-cb:checked');
+    let assignedTo = Array.from(checkboxes).map(cb => cb.value);
+    if (assignedTo.length === 0 || (state.children && assignedTo.length === state.children.length)) {
+        assignedTo = null;
+    }
+
+    const b = state.behaviors.find(x => x.id === id);
+    if(b) {
+        b.title = t;
+        b.type = document.getElementById('editBType').value;
+        b.assignedTo = assignedTo;
+        b.hasJackpot = document.getElementById('editBJackpot').checked;
+        saveData();
+    }
+    document.getElementById('editBehavModal').classList.remove('open');
+    renderSettingsLists();
+}
+
+function addBehavior() {
+    const t = document.getElementById('newBehavTitle').value;
+    if(!t) return alert("Bitte benenne das Verhalten.");
+    const bId = 'b' + Date.now() + Math.floor(Math.random()*1000); 
+    
+    const checkboxes = document.querySelectorAll('.behav-assign-cb:checked');
+    let assignedTo = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (assignedTo.length === 0 || (state.children && assignedTo.length === state.children.length)) {
+        assignedTo = null;
+    }
+
+    const hasJp = document.getElementById('newBehavJackpot').checked;
+
+    if(!state.behaviors) state.behaviors = [];
+    state.behaviors.push({
+        id: bId, 
+        title: t, 
+        type: document.getElementById('newBehavType').value, 
+        assignedTo: assignedTo,
+        hasJackpot: hasJp
+    }); 
+    
+    saveData(); 
+    document.getElementById('newBehavTitle').value='';
+    document.getElementById('newBehavJackpot').checked = false;
+    document.querySelectorAll('.behav-assign-cb').forEach(cb => cb.checked = false);
+}
+function delBehav(id) { state.behaviors=state.behaviors.filter(x=>x.id!==id); saveData(); }
+
+function addShop() {
+    const t = document.getElementById('newSTitle').value; 
+    const c = document.getElementById('newSCost').value;
+    const cur = document.getElementById('newSCurrency').value;
+    if(t && c) { 
+        if(!state.shopItems) state.shopItems = [];
+        state.shopItems.push({id:'s'+Date.now(), title:t, cost:c, currency:cur}); 
+        saveData(); 
+        document.getElementById('newSTitle').value=''; document.getElementById('newSCost').value='';
+    }
+}
+function delShop(id) { state.shopItems=state.shopItems.filter(x=>x.id!==id); saveData(); }
+
+function saveEvent() {
+    if(!state.event) state.event = {};
+    state.event.title = document.getElementById('setEvtTitle').value;
+    state.event.date = document.getElementById('setEvtDate').value;
+    state.event.target = document.getElementById('setEvtTarget').value;
+    saveData(); 
+    alert("Team Event wurde erfolgreich aktualisiert!");
+}
+function saveSettingsGeneral() {
+    if(!state.settings) state.settings = {};
+    state.settings.tvEnabled = document.getElementById('setTvToggle').checked;
+    state.settings.tvThreshold = document.getElementById('setTvThreshold').value;
+    state.settings.exEnabled = document.getElementById('setExToggle').checked;
+    state.settings.exRate = document.getElementById('setExRate').value;
+    state.settings.goalEnabled = document.getElementById('setGoalToggle').checked;
+    saveData(); 
+}
+
+function saveData() { 
+    db.ref('spurwechsel_data').set(state).catch(err => {
+        console.error("Cloud Error", err);
+    });
+}
+
+function nav(v, b) {
+    document.querySelectorAll('.container').forEach(e=>e.classList.add('hidden'));
+    document.getElementById(v).classList.remove('hidden');
+    document.querySelectorAll('.nav-btn').forEach(e=>e.classList.remove('active'));
+    if(b) b.classList.add('active');
+    updateUI();
+    if(v==='viewStats') prepareStats();
+    if(v==='viewSettings') renderSettingsLists();
+}
+function changeDate(d) { uiDate.setDate(uiDate.getDate()+d); updateUI(); }
+function requestPin() { document.getElementById('pinInput').value=''; document.getElementById('pinModal').classList.add('open'); }
+function checkPin() { if(document.getElementById('pinInput').value===state.settings.pin) { document.getElementById('pinModal').classList.remove('open'); nav('viewSettings', null); } else alert("Falscher PIN!"); }
+function openChildModal() { document.getElementById('childListModal').innerHTML=state.children.map(c=>`<div class="child-opt" onclick="activeChildId='${c.id}';document.getElementById('childModal').classList.remove('open');updateUI();"><span style="font-size:2.5rem">${c.avatar}</span> <span style="font-size:1.5rem">${c.name}</span></div>`).join(''); document.getElementById('childModal').classList.add('open'); }
+function renderAvatars() { document.getElementById('avatarGrid').innerHTML = AVATARS.map(a=>`<div class="av-opt ${selectedAvatar===a?'selected':''}" onclick="selectedAvatar='${a}';renderAvatars();">${a}</div>`).join(''); }
+
+</script>
+</body>
+</html>
