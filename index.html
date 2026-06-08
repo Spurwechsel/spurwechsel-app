@@ -436,7 +436,6 @@
     </div>
 </div>
 
-
 <div id="viewTracker" class="container">
     <div class="date-nav">
         <button class="date-btn" onclick="changeDate(-1)">◀</button>
@@ -727,7 +726,6 @@ const auth = firebase.auth();
 const AVATARS = ['🕷️','⚡','🦇','🛡️','🦸‍♂️','🦹‍♂️','🤖','🔨','🕸️','🔥'];
 const COLORS = ['#ff0055', '#0044ff', '#00e676', '#ffaa00', '#9d00ff', '#ff6600', '#00ccff', '#ff00cc'];
 
-const DB_KEY = 'spurwechsel_v35';
 let state = {
     settings: { tvEnabled: true, tvThreshold: 3, pin: "0000", exEnabled: false, exRate: 10, goalEnabled: true },
     children: [], 
@@ -754,6 +752,19 @@ auth.onAuthStateChanged(user => {
     if (user) {
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('loadingOverlay').style.display = 'flex';
+        
+        // DAS IST DER NOTFALL-SCHALTER:
+        window.fbTimeout = setTimeout(() => {
+            const lo = document.getElementById('loadingOverlay');
+            if(lo && lo.style.display !== 'none') {
+                lo.style.display = 'none';
+                alert("⚠️ HINWEIS: Firebase antwortet nicht!
+
+Entweder blockiert dein Browser (oder ein Werbeblocker) die Datenbank, oder deine Firebase-Regeln sind verstellt. Die App lädt jetzt trotzdem weiter, aber Punkte werden u.U. nicht in der Cloud gespeichert.");
+                startAppFallback();
+            }
+        }, 6000);
+
         startApp();
     } else {
         document.getElementById('loginOverlay').style.display = 'flex';
@@ -775,88 +786,101 @@ function doLogout() {
     if(confirm('Möchtest du dich wirklich abmelden?')) auth.signOut();
 }
 
+// Fallback für den Fall, dass Firebase tot ist
+function startAppFallback() {
+    const localData = localStorage.getItem('spurwechsel_v33') || localStorage.getItem('spurwechsel_v32'); 
+    if (localData) {
+        try { state = JSON.parse(localData); } catch(e) { seedData(); }
+    } else {
+        seedData();
+    }
+    processDataAndStart();
+}
+
 function startApp() {
+    // DIAGNOSE SYSTEM: Falls Firebase den Dienst verweigert, sehen wir es hier!
     db.ref('spurwechsel_data').on('value', (snapshot) => {
-        const cloudData = snapshot.val();
+        clearTimeout(window.fbTimeout); // Verbindung hat geklappt, Timer stoppen!
         
+        const cloudData = snapshot.val();
         if (cloudData) {
             state = cloudData;
         } else if (isFirstLoad) {
             const localData = localStorage.getItem('spurwechsel_v33') || localStorage.getItem('spurwechsel_v32'); 
             if (localData) {
-                state = JSON.parse(localData);
+                try { state = JSON.parse(localData); } catch(e) { seedData(); }
             } else {
                 seedData();
             }
         }
-
-        // --- ABSOLUT BULLETPROOF AUTO-REPARATUR ---
-        // Dies verhindert jeden Javascript-Absturz durch korrupte Firebase-Arrays
-        try {
-            function forceArr(val) {
-                if (!val) return [];
-                if (Array.isArray(val)) return val;
-                if (typeof val === 'object') return Object.values(val);
-                return [];
-            }
-
-            if (!state.settings) state.settings = { tvEnabled: true, tvThreshold: 3, pin: "0000", exEnabled: false, exRate: 10, goalEnabled: true };
-            
-            ['children', 'behaviors', 'shopItems', 'logs', 'tallies', 'purchases', 'transfers', 'exchange'].forEach(key => {
-                state[key] = forceArr(state[key]);
-            });
-
-            if (!state.event) state.event = { title: "Unser Event", date: "2026-12-31", target: 50 };
-            if (!state.eventResets) state.eventResets = {};
-
-            state.children.forEach(c => {
-                c.bans = forceArr(c.bans);
-                if (!c.money) c.money = { cash: 0, savings: 0, history: [], amount: 0, interval: '-', lastPaidWeek: getIsoWeek(new Date()), lastPaidMonth: getIsoMonth(new Date()) };
-                c.money.history = forceArr(c.money.history);
-                c.initBlue = parseInt(c.initBlue) || 0;
-                c.initPurple = parseInt(c.initPurple) || 0;
-            });
-            
-            state.behaviors.forEach(b => {
-                if (b.assignedTo && !Array.isArray(b.assignedTo) && typeof b.assignedTo !== 'string') {
-                    b.assignedTo = forceArr(b.assignedTo);
-                }
-            });
-        } catch(e) {
-            console.error("Auto-Repair Error:", e);
-        }
-        // ------------------------------------------
-
-        // GARANTIERT: Ladebildschirm verschwindet, selbst wenn danach ein UI Fehler auftritt
+        processDataAndStart();
+    }, (error) => {
+        clearTimeout(window.fbTimeout);
         document.getElementById('loadingOverlay').style.display = 'none';
-
-        if (isFirstLoad) {
-            isFirstLoad = false;
-            
-            try {
-                checkBrowser(); 
-                cleanUpBans();  
-                if(state.children && state.children.length > 0 && !activeChildId) activeChildId = state.children[0].id;
-
-                checkAllowanceAutoPay();
-
-                document.getElementById('statEnd').valueAsDate = new Date();
-                let d = new Date(); d.setDate(d.getDate()-7);
-                document.getElementById('statStart').valueAsDate = d;
-
-                renderAvatars();
-            } catch(e) {
-                console.error("Init Error:", e);
-            }
-        }
-
-        try {
-            updateUI();
-            if(!document.getElementById('viewSettings').classList.contains('hidden')) renderSettingsLists();
-        } catch(e) {
-            console.error("UI Update Error:", e);
-        }
+        alert("❌ DATENBANK-FEHLER!
+Firebase blockiert die App. Grund: " + error.message);
     });
+}
+
+function processDataAndStart() {
+    try {
+        function forceArr(val) {
+            if (!val) return [];
+            if (Array.isArray(val)) return val;
+            if (typeof val === 'object') return Object.values(val);
+            return [];
+        }
+
+        if (!state.settings) state.settings = { tvEnabled: true, tvThreshold: 3, pin: "0000", exEnabled: false, exRate: 10, goalEnabled: true };
+        
+        ['children', 'behaviors', 'shopItems', 'logs', 'tallies', 'purchases', 'transfers', 'exchange'].forEach(key => {
+            state[key] = forceArr(state[key]);
+        });
+
+        if (!state.event) state.event = { title: "Unser Event", date: "2026-12-31", target: 50 };
+        if (!state.eventResets) state.eventResets = {};
+
+        state.children.forEach(c => {
+            c.bans = forceArr(c.bans);
+            if (!c.money) c.money = { cash: 0, savings: 0, history: [], amount: 0, interval: '-', lastPaidWeek: getIsoWeek(new Date()), lastPaidMonth: getIsoMonth(new Date()) };
+            c.money.history = forceArr(c.money.history);
+            c.initBlue = parseInt(c.initBlue) || 0;
+            c.initPurple = parseInt(c.initPurple) || 0;
+        });
+        
+        state.behaviors.forEach(b => {
+            if (b.assignedTo && !Array.isArray(b.assignedTo) && typeof b.assignedTo !== 'string') {
+                b.assignedTo = forceArr(b.assignedTo);
+            }
+        });
+    } catch(e) {
+        console.error("Auto-Repair Error:", e);
+    }
+    
+    document.getElementById('loadingOverlay').style.display = 'none';
+
+    if (isFirstLoad) {
+        isFirstLoad = false;
+        try {
+            checkBrowser(); 
+            cleanUpBans();  
+            if(state.children && state.children.length > 0 && !activeChildId) activeChildId = state.children[0].id;
+            checkAllowanceAutoPay();
+            document.getElementById('statEnd').valueAsDate = new Date();
+            let d = new Date(); d.setDate(d.getDate()-7);
+            document.getElementById('statStart').valueAsDate = d;
+            renderAvatars();
+        } catch(e) {
+            console.error("Init Error:", e);
+        }
+    }
+
+    try {
+        updateUI();
+        if(!document.getElementById('viewSettings').classList.contains('hidden')) renderSettingsLists();
+    } catch(e) {
+        console.error("UI Update Error:", e);
+    }
 }
 
 function checkBrowser() {
