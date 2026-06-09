@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#FF00CC">
     <title>Spurwechsel Pro</title>
-    <!-- VERSION 37 -->
+    <!-- VERSION 38 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230044ff%22 stroke=%22%23000%22 stroke-width=%225%22/><text x=%2250%22 y=%2278%22 font-family=%22sans-serif%22 font-size=%2280%22 font-weight=%22900%22 fill=%22%23ffee00%22 text-anchor=%22middle%22 stroke=%22%23000%22 stroke-width=%223%22>S</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -295,7 +295,7 @@
 
 <div id="loginOverlay">
     <div class="card" style="width: 100%; max-width: 400px; transform: rotate(0deg); text-align:center;">
-        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v37</span></div>
+        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v38</span></div>
         <h3 style="margin-bottom:20px; font-family:'Fredoka'; font-weight:700;">Sicherer Cloud-Login</h3>
         <input type="email" id="loginEmail" placeholder="Familien E-Mail (z.B. familie@...)">
         <input type="password" id="loginPass" placeholder="Passwort">
@@ -317,7 +317,7 @@
     </div>
 </div>
 
-<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v37</span></div></div>
+<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v38</span></div></div>
 
 <div class="nav-sidebar no-print">
     <div class="nav-btn active" onclick="nav('viewTracker', this)"><span class="nav-icon">📝</span><span class="nav-text">Plan</span></div>
@@ -547,14 +547,14 @@
     
     <div style="display: flex; gap: 10px; margin-bottom: 20px;">
         <div class="card" style="flex: 1; text-align: center; margin-bottom: 0; padding: 15px;">
-            <div style="font-weight: bold; font-size: 0.9rem; text-transform: uppercase;">Deine Shop-Coins</div>
+            <div style="font-weight: bold; font-size: 0.9rem; text-transform: uppercase;">Sozial-Punkte</div>
             <div style="font-size: 3rem; font-family: 'Bangers'; color: var(--c-purple);"><span id="shopScoreSoz">0</span> 🟣</div>
-            <div style="font-size: 0.8rem;">(Sozial-Punkte)</div>
+            <div style="font-size: 0.8rem;">(Team/Sozial)</div>
         </div>
         <div class="card" style="flex: 1; text-align: center; margin-bottom: 0; padding: 15px;">
-            <div style="font-weight: bold; font-size: 0.9rem; text-transform: uppercase;">Normale Coins</div>
+            <div style="font-weight: bold; font-size: 0.9rem; text-transform: uppercase;">Aufgaben-Coins</div>
             <div style="font-size: 3rem; font-family: 'Bangers'; color: var(--c-blue);"><span id="shopScoreGen">0</span> 🔵</div>
-            <div style="font-size: 0.8rem;">(Aufgaben)</div>
+            <div style="font-size: 0.8rem;">(Regeln/Pflichten)</div>
         </div>
     </div>
 
@@ -610,7 +610,7 @@
         </div>
         <div class="setting-row" style="display:block;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <b>🔵 Wechselstube (Coins ➜ €)</b>
+                <b>🔵 Wechselstube (Aufgaben-Coins ➜ €)</b>
                 <label class="switch"><input type="checkbox" id="setExToggle" onchange="saveSettingsGeneral()"><span class="slider"></span></label>
             </div>
             <div style="margin-top:5px; display:flex; align-items:center; gap:5px; font-weight:bold; font-size:0.9rem;">
@@ -702,7 +702,7 @@
             <input type="text" id="newSTitle" placeholder="Belohnung">
             <div style="display:flex; gap:10px;">
                 <input type="number" id="newSCost" placeholder="Preis">
-                <select id="newSCurrency"><option value="general">🔵 Normale Coins</option><option value="social">🟣 Sozial-Punkte</option></select>
+                <select id="newSCurrency"><option value="general">🔵 Aufgaben-Coins</option><option value="social">🟣 Sozial-Punkte</option></select>
             </div>
             <button class="btn btn-p" onclick="addShop()">In Shop stellen</button>
         </div>
@@ -1271,7 +1271,7 @@ function updateUI() {
     }
 
     renderMoneyHistory();
-    document.getElementById('exchangeBtnContainer').innerHTML = (state.settings && state.settings.exEnabled) ? `<button class="btn btn-p" onclick="openExchange()" style="padding:15px; font-size:1.1rem;">🔄 🔵 Coins in Taschengeld wechseln</button>` : '';
+    document.getElementById('exchangeBtnContainer').innerHTML = (state.settings && state.settings.exEnabled) ? `<button class="btn btn-p" onclick="openExchange()" style="padding:15px; font-size:1.1rem;">🔄 🔵 Aufgaben-Coins in Taschengeld wechseln</button>` : '';
 
     if(state.event) {
         document.getElementById('evtName').innerText = state.event.title;
@@ -1297,26 +1297,26 @@ function renderOverview() {
         const bal = getBalances(c.id);
         const lvl = calcLevel(bal.lifetime);
         list.innerHTML += `
-        <div class="overview-card">
-            <div style="display:flex; align-items:center; gap:15px;">
+        <div class="overview-card" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+            <div style="display:flex; align-items:center; gap:15px; width: 100%;">
                 <div style="font-size:3.5rem;">${c.avatar}</div>
                 <div>
                     <div style="font-size:1.8rem; font-family:'Bangers'; line-height:1;">${c.name}</div>
                     <div style="font-size:0.8rem; font-weight:bold; color:#666;">Level ${lvl}</div>
                 </div>
             </div>
-            <div style="display:flex; gap:10px;">
-                <div class="ov-badge" style="background:#eff6ff;">
-                    <div style="font-size:1.8rem; font-family:'Bangers'; color:var(--c-blue);">${bal.blue}</div>
-                    <div style="font-size:0.7rem; font-weight:bold;">COINS</div>
+            <div style="display:flex; gap:6px; flex-wrap: wrap; width: 100%;">
+                <div class="ov-badge" style="background:#eff6ff; flex:1; min-width: 60px; padding: 5px;">
+                    <div style="font-size:1.4rem; font-family:'Bangers'; color:var(--c-blue);">${bal.blue}</div>
+                    <div style="font-size:0.65rem; font-weight:bold;">AUFGABEN</div>
                 </div>
-                <div class="ov-badge" style="background:#fdf4ff;">
-                    <div style="font-size:1.8rem; font-family:'Bangers'; color:var(--c-purple);">${bal.purpleEvent}</div>
-                    <div style="font-size:0.7rem; font-weight:bold;">EVENT</div>
+                <div class="ov-badge" style="background:#fdf4ff; flex:1; min-width: 60px; padding: 5px;">
+                    <div style="font-size:1.4rem; font-family:'Bangers'; color:var(--c-purple);">${bal.purpleEvent}</div>
+                    <div style="font-size:0.65rem; font-weight:bold;">EVENT</div>
                 </div>
-                <div class="ov-badge" style="background:#fdf4ff;">
-                    <div style="font-size:1.8rem; font-family:'Bangers'; color:var(--c-purple);">${bal.purpleShop}</div>
-                    <div style="font-size:0.7rem; font-weight:bold;">SHOP</div>
+                <div class="ov-badge" style="background:#fdf4ff; flex:1; min-width: 60px; padding: 5px;">
+                    <div style="font-size:1.4rem; font-family:'Bangers'; color:var(--c-purple);">${bal.purpleShop}</div>
+                    <div style="font-size:0.65rem; font-weight:bold;">SOZIAL</div>
                 </div>
             </div>
         </div>
@@ -1540,7 +1540,7 @@ function renderShop() {
             let isSocial = s.currency === 'social';
             let can = isSocial ? (balPurpleShop >= s.cost) : (balBlue >= s.cost);
             let col = isSocial ? 'var(--c-purple)' : 'var(--c-blue)';
-            let icon = isSocial ? '🟣 Sozial' : '🔵 Coins';
+            let icon = isSocial ? '🟣 Sozial' : '🔵 Aufgaben';
             
             const safeTitle = (s.title || "").replace(/'/g, "\'");
 
