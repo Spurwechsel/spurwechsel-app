@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#FF00CC">
     <title>Spurwechsel Pro</title>
-    <!-- VERSION 36 -->
+    <!-- VERSION 37 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230044ff%22 stroke=%22%23000%22 stroke-width=%225%22/><text x=%2250%22 y=%2278%22 font-family=%22sans-serif%22 font-size=%2280%22 font-weight=%22900%22 fill=%22%23ffee00%22 text-anchor=%22middle%22 stroke=%22%23000%22 stroke-width=%223%22>S</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -295,7 +295,7 @@
 
 <div id="loginOverlay">
     <div class="card" style="width: 100%; max-width: 400px; transform: rotate(0deg); text-align:center;">
-        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#ffee00;">v36</span></div>
+        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v37</span></div>
         <h3 style="margin-bottom:20px; font-family:'Fredoka'; font-weight:700;">Sicherer Cloud-Login</h3>
         <input type="email" id="loginEmail" placeholder="Familien E-Mail (z.B. familie@...)">
         <input type="password" id="loginPass" placeholder="Passwort">
@@ -317,7 +317,7 @@
     </div>
 </div>
 
-<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#ffee00;">v36</span></div></div>
+<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v37</span></div></div>
 
 <div class="nav-sidebar no-print">
     <div class="nav-btn active" onclick="nav('viewTracker', this)"><span class="nav-icon">📝</span><span class="nav-text">Plan</span></div>
@@ -715,12 +715,11 @@ window.fbTimeout = setTimeout(() => {
     const lo = document.getElementById('loadingOverlay');
     if(lo && lo.style.display !== 'none') {
         lo.style.display = 'none';
-        alert("⚠️ HINWEIS v36: App lädt im Offline-Modus! Die Datenbank antwortet nicht. Entweder blockiert ein Werbeblocker die Verbindung, oder du hast kein Internet.");
+        alert("⚠️ HINWEIS v37: Offline-Modus! Die Datenbank antwortet nicht. Entweder blockiert ein Werbeblocker die Verbindung, oder du hast kein Internet.");
         if (typeof startAppFallback === 'function') startAppFallback();
     }
 }, 6000);
 
-try {
 const firebaseConfig = {
   apiKey: "AIzaSyDe3D4X2N_-rPc7mVSHNvo894J0s0retWo",
   authDomain: "spurwechsel-7833e.firebaseapp.com",
@@ -734,9 +733,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const auth = firebase.auth();
-} catch(e) {
-    alert("Kritischer Fehler beim Starten der Datenbank-Verbindung: " + e.message);
-}
 
 const AVATARS = ['🕷️','⚡','🦇','🛡️','🦸‍♂️','🦹‍♂️','🤖','🔨','🕸️','🔥'];
 const COLORS = ['#ff0055', '#0044ff', '#00e676', '#ffaa00', '#9d00ff', '#ff6600', '#00ccff', '#ff00cc'];
