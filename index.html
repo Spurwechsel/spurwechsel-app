@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#FF00CC">
     <title>Spurwechsel Pro</title>
-    <!-- VERSION 40 -->
+    <!-- VERSION 41 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230044ff%22 stroke=%22%23000%22 stroke-width=%225%22/><text x=%2250%22 y=%2278%22 font-family=%22sans-serif%22 font-size=%2280%22 font-weight=%22900%22 fill=%22%23ffee00%22 text-anchor=%22middle%22 stroke=%22%23000%22 stroke-width=%223%22>S</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -295,7 +295,7 @@
 
 <div id="loginOverlay">
     <div class="card" style="width: 100%; max-width: 400px; transform: rotate(0deg); text-align:center;">
-        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v40</span></div>
+        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v41</span></div>
         <h3 style="margin-bottom:20px; font-family:'Fredoka'; font-weight:700;">Sicherer Cloud-Login</h3>
         <input type="email" id="loginEmail" placeholder="Familien E-Mail (z.B. familie@...)">
         <input type="password" id="loginPass" placeholder="Passwort">
@@ -317,7 +317,7 @@
     </div>
 </div>
 
-<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v40</span></div></div>
+<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v41</span></div></div>
 
 <div class="nav-sidebar no-print">
     <div class="nav-btn active" onclick="nav('viewTracker', this)"><span class="nav-icon">📝</span><span class="nav-text">Plan</span></div>
@@ -509,16 +509,18 @@
     <h3>Fortschritt im Team</h3>
     <p style="font-size:0.9rem; margin-bottom:15px;">Hier siehst du die Punkte, die sicher für das Gemeinschaftsevent gespart werden. Shop-Einkäufe ziehen hier nichts ab!</p>
     <div id="teamGrid"></div>
-
-    <div class="card" style="margin-top:20px; background:#f0fdf4;">
-        <h3>⚖️ Wiedergutmachung</h3>
-        <p style="font-weight:600; font-size:0.9rem;">Übertrage Sozialpunkte an ein anderes Kind.</p>
+    <div class="card" style="margin-top:20px; border-left: 4px solid #9d00ff; background:#f0fdf4;">
+        <h3>⚖️ Wiedergutmachung (Event-Punkte)</h3>
+        <p style="font-weight:600; font-size:0.9rem; margin-bottom:10px;">Übertrage Event-Punkte (🟣). Das Taschengeld (Shop-Coins) bleibt davon völlig unberührt!</p>
         <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
             <select id="trFrom"></select> <span style="font-size:1.5rem; font-weight:bold;">➜</span> <select id="trTo"></select>
         </div>
-        <input type="number" id="trAmt" value="1" placeholder="Wie viele Punkte?">
-        <button class="btn btn-s" onclick="doTransfer()">Punkte rüberschieben!</button>
+        <input type="number" id="trAmt" value="1" placeholder="Punkte" style="margin-bottom:10px; width: 100%; padding:8px;">
+        <input type="text" id="trReason" placeholder="Grund (z.B. Streit)" style="width:100%; margin-bottom:10px; padding:8px;">
+        <button class="btn btn-s" onclick="doTransfer()">Wiedergutmachung buchen</button>
     </div>
+
+
 </div>
 
 <div id="viewMoney" class="container hidden">
@@ -810,6 +812,7 @@ function startApp() {
 }
 
 function processDataAndStart() {
+    checkAutoBackup();
     try {
         function forceArr(val) {
             if (!val) return [];
@@ -1065,11 +1068,10 @@ function getBalances(cId) {
     if(state.transfers) {
         state.transfers.forEach(t => {
             if(t.from === cId) {
-                purpleShop -= t.amount;
+                // NUR Event-Punkte abziehen, Shop (Taschengeld) bleibt unberuehrt
                 if(t.date > lastReset) purpleEvent -= t.amount;
             }
             if(t.to === cId) {
-                purpleShop += t.amount;
                 if(t.date > lastReset) purpleEvent += t.amount;
             }
         });
@@ -1504,11 +1506,32 @@ function doTransfer() {
     const f = document.getElementById('trFrom').value;
     const t = document.getElementById('trTo').value;
     const a = parseInt(document.getElementById('trAmt').value);
-    if(f===t || a<=0) return alert("Bitte wähle zwei verschiedene Kinder aus.");
-    if(getBalances(f).purpleShop<a) return alert("Nicht genug Sozial-Punkte zum Übertragen.");
+    const trReasonEl = document.getElementById('trReason');
+    const reason = trReasonEl ? trReasonEl.value : "Wiedergutmachung";
+    
+    if(f===t || a<=0) return alert("Bitte wähle zwei verschiedene Ziele aus.");
+    
+    // Wir pruefen jetzt auf purpleEvent, nicht mehr auf purpleShop!
+    if(getBalances(f).purpleEvent < a) return alert("Nicht genug Event-Punkte (🟣) zum Übertragen.");
+    
     if(!state.transfers) state.transfers = [];
-    state.transfers.push({date:getFDate(new Date()), from:f, to:t, amount:a});
-    saveData(); alert("Punkte erfolgreich übertragen!");
+    state.transfers.push({date:getFDate(new Date()), from:f, to:t, amount:a, reason:reason});
+    
+    if(!state.logs) state.logs = [];
+    state.logs.push({
+        id: 'wg_' + Date.now(),
+        date: getFDate(new Date()),
+        childId: f,
+        behavId: 'transfer',
+        val: -a,
+        note: 'Wiedergutmachung an ' + (state.children.find(c => c.id === t)?.name || 'Team') + ': ' + reason
+    });
+    
+    saveData(); 
+    alert("Wiedergutmachung erfolgreich gebucht! Das Taschengeld bleibt unangetastet.");
+    if(document.getElementById('trAmt')) document.getElementById('trAmt').value = 1;
+    if(trReasonEl) trReasonEl.value = "";
+    renderOverview();
 }
 function resetEvent(cId) { 
     if(confirm('Sollen die Event-Punkte für dieses Kind nach dem Event wieder auf 0 gesetzt werden? (Shop-Punkte bleiben erhalten)')) { 
@@ -2002,6 +2025,31 @@ function saveSettingsGeneral() {
     state.settings.exRate = document.getElementById('setExRate').value;
     state.settings.goalEnabled = document.getElementById('setGoalToggle').checked;
     saveData(); 
+}
+
+
+function createBackup() {
+    if (!db) return alert("Keine Datenbankverbindung.");
+    const backupData = JSON.parse(JSON.stringify(state));
+    backupData.timestamp = new Date().toISOString();
+    db.ref('backups/' + Date.now()).set(backupData)
+      .then(() => alert("Backup erfolgreich in der Cloud (Firebase) gesichert!"))
+      .catch(e => alert("Backup Fehler: " + e));
+}
+
+function checkAutoBackup() {
+    const lastBackupStr = localStorage.getItem('spurwechsel_last_backup');
+    const now = Date.now();
+    // 24 Stunden Check
+    if (!lastBackupStr || (now - parseInt(lastBackupStr) > 86400000)) {
+        if (db) {
+            const backupData = JSON.parse(JSON.stringify(state));
+            backupData.timestamp = new Date().toISOString();
+            db.ref('backups/latest').set(backupData);
+            localStorage.setItem('spurwechsel_last_backup', now.toString());
+            console.log("Auto-Backup erstellt.");
+        }
+    }
 }
 
 function saveData() { 
