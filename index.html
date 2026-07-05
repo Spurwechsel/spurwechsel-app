@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#FF00CC">
     <title>Spurwechsel Pro</title>
-    <!-- VERSION 41 -->
+    <!-- VERSION 42 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230044ff%22 stroke=%22%23000%22 stroke-width=%225%22/><text x=%2250%22 y=%2278%22 font-family=%22sans-serif%22 font-size=%2280%22 font-weight=%22900%22 fill=%22%23ffee00%22 text-anchor=%22middle%22 stroke=%22%23000%22 stroke-width=%223%22>S</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -295,7 +295,7 @@
 
 <div id="loginOverlay">
     <div class="card" style="width: 100%; max-width: 400px; transform: rotate(0deg); text-align:center;">
-        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v41</span></div>
+        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v42</span></div>
         <h3 style="margin-bottom:20px; font-family:'Fredoka'; font-weight:700;">Sicherer Cloud-Login</h3>
         <input type="email" id="loginEmail" placeholder="Familien E-Mail (z.B. familie@...)">
         <input type="password" id="loginPass" placeholder="Passwort">
@@ -317,7 +317,7 @@
     </div>
 </div>
 
-<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v41</span></div></div>
+<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v42</span></div></div>
 
 <div class="nav-sidebar no-print">
     <div class="nav-btn active" onclick="nav('viewTracker', this)"><span class="nav-icon">📝</span><span class="nav-text">Plan</span></div>
@@ -509,16 +509,7 @@
     <h3>Fortschritt im Team</h3>
     <p style="font-size:0.9rem; margin-bottom:15px;">Hier siehst du die Punkte, die sicher für das Gemeinschaftsevent gespart werden. Shop-Einkäufe ziehen hier nichts ab!</p>
     <div id="teamGrid"></div>
-    <div class="card" style="margin-top:20px; border-left: 4px solid #9d00ff; background:#f0fdf4;">
-        <h3>⚖️ Wiedergutmachung (Event-Punkte)</h3>
-        <p style="font-weight:600; font-size:0.9rem; margin-bottom:10px;">Übertrage Event-Punkte (🟣). Das Taschengeld (Shop-Coins) bleibt davon völlig unberührt!</p>
-        <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
-            <select id="trFrom"></select> <span style="font-size:1.5rem; font-weight:bold;">➜</span> <select id="trTo"></select>
-        </div>
-        <input type="number" id="trAmt" value="1" placeholder="Punkte" style="margin-bottom:10px; width: 100%; padding:8px;">
-        <input type="text" id="trReason" placeholder="Grund (z.B. Streit)" style="width:100%; margin-bottom:10px; padding:8px;">
-        <button class="btn btn-s" onclick="doTransfer()">Wiedergutmachung buchen</button>
-    </div>
+    
 
 
 </div>
@@ -639,6 +630,14 @@
     </div>
 
     <div class="card">
+        
+    <div class="card" style="background:#e0f2fe; margin-bottom:20px;">
+        <h3>💾 Backup & Wiederherstellung</h3>
+        <p style="font-size:0.9rem;">Die App erstellt täglich im Hintergrund ein Auto-Backup in der Cloud. Du kannst aber auch manuell speichern.</p>
+        <button class="btn btn-p" style="margin-bottom:10px;" onclick="createBackup()">Manuelles Backup erstellen</button>
+        <button class="btn btn-d" style="background:#475569;" onclick="restoreBackup()">Letztes Backup laden</button>
+    </div>
+
         <h3>Kinder verwalten</h3>
         <div id="setChildList"></div>
         <div style="background:#f0f9ff; padding:15px; border:2px dashed #000; border-radius:15px; margin-top:20px;">
@@ -811,7 +810,46 @@ function startApp() {
     });
 }
 
+
+function createBackup() {
+    if (!db) return alert("Keine Datenbankverbindung.");
+    const backupData = JSON.parse(JSON.stringify(state));
+    backupData.timestamp = new Date().toISOString();
+    db.ref('backups/manual').set(backupData)
+      .then(() => alert("Backup erfolgreich in der Cloud (Firebase) gesichert!"))
+      .catch(e => alert("Backup Fehler: " + e));
+}
+
+function restoreBackup() {
+    if(!confirm("ACHTUNG! Dadurch werden deine aktuellen Daten mit dem letzten Backup überschrieben. Wirklich fortfahren?")) return;
+    if(!db) return alert("Keine Datenbankverbindung.");
+    db.ref('backups/manual').once('value').then(snap => {
+        if(!snap.exists()) return alert("Kein manuelles Backup gefunden.");
+        const data = snap.val();
+        db.ref('spurwechsel_data').set(data).then(() => {
+            alert("Backup erfolgreich geladen! Die App wird nun aktualisiert.");
+            window.location.reload();
+        });
+    });
+}
+
+function checkAutoBackup() {
+    const lastBackupStr = localStorage.getItem('spurwechsel_last_backup');
+    const now = Date.now();
+    // 24 Stunden Check
+    if (!lastBackupStr || (now - parseInt(lastBackupStr) > 86400000)) {
+        if (db) {
+            const backupData = JSON.parse(JSON.stringify(state));
+            backupData.timestamp = new Date().toISOString();
+            db.ref('backups/auto').set(backupData);
+            localStorage.setItem('spurwechsel_last_backup', now.toString());
+            console.log("Auto-Backup erstellt.");
+        }
+    }
+}
+
 function processDataAndStart() {
+    checkAutoBackup();
     checkAutoBackup();
     try {
         function forceArr(val) {
@@ -1316,6 +1354,10 @@ function renderOverview() {
 }
 
 function renderTrackerLists() {
+
+    let childOpts = state.children.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    if(document.getElementById('trFrom')) document.getElementById('trFrom').innerHTML = childOpts;
+    if(document.getElementById('trTo')) document.getElementById('trTo').innerHTML = childOpts + '<option value="team">Gemeinschafts-Topf</option>';
     const dStr = getFDate(uiDate);
     ['general', 'social'].forEach(type => {
         const div = document.getElementById(type==='general' ? 'listGeneral' : 'listSocial');
