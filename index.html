@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#FF00CC">
     <title>Spurwechsel Pro</title>
-    <!-- VERSION 42 -->
+    <!-- VERSION 43 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230044ff%22 stroke=%22%23000%22 stroke-width=%225%22/><text x=%2250%22 y=%2278%22 font-family=%22sans-serif%22 font-size=%2280%22 font-weight=%22900%22 fill=%22%23ffee00%22 text-anchor=%22middle%22 stroke=%22%23000%22 stroke-width=%223%22>S</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -295,7 +295,7 @@
 
 <div id="loginOverlay">
     <div class="card" style="width: 100%; max-width: 400px; transform: rotate(0deg); text-align:center;">
-        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v42</span></div>
+        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v43</span></div>
         <h3 style="margin-bottom:20px; font-family:'Fredoka'; font-weight:700;">Sicherer Cloud-Login</h3>
         <input type="email" id="loginEmail" placeholder="Familien E-Mail (z.B. familie@...)">
         <input type="password" id="loginPass" placeholder="Passwort">
@@ -317,7 +317,7 @@
     </div>
 </div>
 
-<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v42</span></div></div>
+<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v43</span></div></div>
 
 <div class="nav-sidebar no-print">
     <div class="nav-btn active" onclick="nav('viewTracker', this)"><span class="nav-icon">📝</span><span class="nav-text">Plan</span></div>
@@ -1309,7 +1309,7 @@ function updateUI() {
         document.getElementById('evtCountdown').innerText = diff < 0 ? "VORBEI!" : diff + " TAGE";
     }
     renderTeamGrid();
-    renderOverview();
+    renderOverview(); renderRestitutionUI();
 }
 
 function renderOverview() {
@@ -1354,10 +1354,9 @@ function renderOverview() {
 }
 
 function renderTrackerLists() {
+    renderRestitutionUI();
 
-    let childOpts = state.children.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-    if(document.getElementById('trFrom')) document.getElementById('trFrom').innerHTML = childOpts;
-    if(document.getElementById('trTo')) document.getElementById('trTo').innerHTML = childOpts + '<option value="team">Gemeinschafts-Topf</option>';
+
     const dStr = getFDate(uiDate);
     ['general', 'social'].forEach(type => {
         const div = document.getElementById(type==='general' ? 'listGeneral' : 'listSocial');
@@ -1544,13 +1543,31 @@ function renderTeamGrid() {
     document.getElementById('trFrom').innerHTML = opts;
     document.getElementById('trTo').innerHTML = opts;
 }
+
+function renderRestitutionUI() {
+    const card = document.getElementById('restitutionCard');
+    const fSel = document.getElementById('trFrom');
+    const tSel = document.getElementById('trTo');
+    if(!card || !fSel || !tSel) return;
+
+    if(!state.children || state.children.length < 2) {
+        card.style.display = 'none';
+        return;
+    }
+
+    card.style.display = 'block';
+    const opts = state.children.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    fSel.innerHTML = opts;
+    tSel.innerHTML = opts + '<option value="team">Gemeinschafts-Topf</option>';
+}
+
 function doTransfer() {
     const f = document.getElementById('trFrom').value;
     const t = document.getElementById('trTo').value;
     const a = parseInt(document.getElementById('trAmt').value);
     const trReasonEl = document.getElementById('trReason');
-    const reason = trReasonEl ? trReasonEl.value : "Wiedergutmachung";
-    
+    const reason = trReasonEl ? trReasonEl.value.trim() : "";
+    if(!reason) return alert("Bitte gib einen Grund für die Wiedergutmachung an.");
     if(f===t || a<=0) return alert("Bitte wähle zwei verschiedene Ziele aus.");
     
     // Wir pruefen jetzt auf purpleEvent, nicht mehr auf purpleShop!
@@ -1573,7 +1590,7 @@ function doTransfer() {
     alert("Wiedergutmachung erfolgreich gebucht! Das Taschengeld bleibt unangetastet.");
     if(document.getElementById('trAmt')) document.getElementById('trAmt').value = 1;
     if(trReasonEl) trReasonEl.value = "";
-    renderOverview();
+    renderOverview(); renderRestitutionUI();
 }
 function resetEvent(cId) { 
     if(confirm('Sollen die Event-Punkte für dieses Kind nach dem Event wieder auf 0 gesetzt werden? (Shop-Punkte bleiben erhalten)')) { 
