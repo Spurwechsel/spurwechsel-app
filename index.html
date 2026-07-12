@@ -2120,6 +2120,17 @@ function nav(v, b) {
     document.getElementById(v).classList.remove('hidden');
     document.querySelectorAll('.nav-btn').forEach(e=>e.classList.remove('active'));
     if(b) b.classList.add('active');
+    
+    // WIEDERGUTMACHUNG FIX: Das Feld nur im Plan-Tab zeigen!
+    const wgCard = document.getElementById('restitutionCard');
+    if (wgCard) {
+        if (v === 'viewTracker') {
+            wgCard.style.display = 'block';
+        } else {
+            wgCard.style.display = 'none';
+        }
+    }
+    
     updateUI();
     if(v==='viewStats') prepareStats();
     if(v==='viewSettings') renderSettingsLists();
