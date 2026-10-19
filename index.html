@@ -6,8 +6,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#FF00CC">
     <title>Spurwechsel Pro</title>
-    <!-- VERSION 48 -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230044ff%22 stroke=%22%23000%22 stroke-width=%225%22/><text x=%2250%22 y=%2278%22 font-family=%22sans-serif%22 font-size=%2280%22 font-weight=%22900%22 fill=%22%23ffee00%22 text-anchor=%22middle%22 stroke=%22%23000%22 stroke-width=%223%22>S</text></svg>">
+    <!-- VERSION 49 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path d=%22M50 5 L90 25 L90 60 C90 80 50 95 50 95 C50 95 10 80 10 60 L10 25 Z%22 fill=%22%23ff0055%22 stroke=%22%23000%22 stroke-width=%225%22/><text x=%2250%22 y=%2270%22 font-family=%22sans-serif%22 font-size=%2255%22 font-weight=%22900%22 fill=%22%23ffee00%22 text-anchor=%22middle%22 stroke=%22%23000%22 stroke-width=%222%22>S</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -295,7 +295,7 @@
 
 <div id="loginOverlay">
     <div class="card" style="width: 100%; max-width: 400px; transform: rotate(0deg); text-align:center;">
-        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v48</span></div>
+        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v49</span></div>
         <h3 style="margin-bottom:20px; font-family:'Fredoka'; font-weight:700;">Sicherer Cloud-Login</h3>
         <input type="email" id="loginEmail" placeholder="Familien E-Mail (z.B. familie@...)">
         <input type="password" id="loginPass" placeholder="Passwort">
@@ -317,7 +317,7 @@
     </div>
 </div>
 
-<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v48</span></div></div>
+<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v49</span></div></div>
 
 <div class="nav-sidebar no-print">
     <div class="nav-btn active" onclick="nav('viewTracker', this)"><span class="nav-icon">📝</span><span class="nav-text">Plan</span></div>
@@ -367,6 +367,9 @@
         <div style="display:flex; gap:10px;">
             <input type="number" id="editTgAmount" placeholder="Betrag in €">
             <select id="editTgInterval"><option value="Woche">Wöchentlich</option><option value="Monat">Monatlich</option></select>
+<label style="display:flex; align-items:center; gap:5px; margin-top:15px; background:#e0f2fe; padding:10px; border-radius:8px; border:2px solid #000; cursor:pointer;">
+                <input type="checkbox" id="editCPause" style="width:auto; margin:0;"> 🏖️ Pausenmodus (Nur Ziele/Aufgaben pausieren)
+            </label>
         </div>
         
         <button class="btn btn-p" style="margin-top:15px;" onclick="saveEditChild()">Änderungen speichern</button>
@@ -1350,6 +1353,14 @@ function renderOverview() {
 
 function renderTrackerLists() {
     if(typeof renderRestitutionUI === "function") renderRestitutionUI();
+    
+    const c = state.children.find(x => x.id === activeChildId);
+    if (c && c.isPaused) {
+        document.getElementById('listGeneral').innerHTML = '<div style="background:#e0f2fe; padding:20px; border-radius:15px; border:3px solid #0044ff; text-align:center;"><h2>🏖️ Pausenmodus Aktiv</h2><p>Keine Ziele heute! Ruh dich aus.</p></div>';
+        document.getElementById('listSocial').innerHTML = '';
+        return;
+    }
+    
     const dStr = getFDate(uiDate);
     ['general', 'social'].forEach(type => {
         const div = document.getElementById(type==='general' ? 'listGeneral' : 'listSocial');
@@ -1930,6 +1941,7 @@ function openEditChild(id) {
     document.getElementById('editCName').value = c.name;
     document.getElementById('editTgAmount').value = c.money ? c.money.amount : 0;
     document.getElementById('editTgInterval').value = c.money ? c.money.interval : 'Woche';
+document.getElementById('editCPause').checked = !!c.isPaused;
     editSelectedAvatar = c.avatar;
     renderEditAvatars();
     document.getElementById('editChildModal').classList.add('open');
@@ -1950,6 +1962,7 @@ function saveEditChild() {
     if(!c.money) c.money = {cash:0, savings:0, history:[], lastPaidWeek: getIsoWeek(new Date()), lastPaidMonth: getIsoMonth(new Date())};
     c.money.amount = amt || 0;
     c.money.interval = ival;
+c.isPaused = document.getElementById('editCPause').checked;
     
     saveData(); document.getElementById('editChildModal').classList.remove('open');
 }
