@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#FF00CC">
     <title>Spurwechsel Pro</title>
-    <!-- VERSION 54 -->
+    <!-- VERSION 55 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path d=%22M50 5 L90 25 L90 60 C90 80 50 95 50 95 C50 95 10 80 10 60 L10 25 Z%22 fill=%22%23ff0055%22 stroke=%22%23000%22 stroke-width=%225%22/><text x=%2250%22 y=%2270%22 font-family=%22sans-serif%22 font-size=%2255%22 font-weight=%22900%22 fill=%22%23ffee00%22 text-anchor=%22middle%22 stroke=%22%23000%22 stroke-width=%222%22>S</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -295,7 +295,7 @@
 
 <div id="loginOverlay">
     <div class="card" style="width: 100%; max-width: 400px; transform: rotate(0deg); text-align:center;">
-        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v54</span></div>
+        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v55</span></div>
         <h3 style="margin-bottom:20px; font-family:'Fredoka'; font-weight:700;">Sicherer Cloud-Login</h3>
         <input type="email" id="loginEmail" placeholder="Familien E-Mail (z.B. familie@...)">
         <input type="password" id="loginPass" placeholder="Passwort">
@@ -317,7 +317,7 @@
     </div>
 </div>
 
-<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v54</span></div></div>
+<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v55</span></div></div>
 
 <div class="nav-sidebar no-print">
     <div class="nav-btn active" onclick="nav('viewTracker', this)"><span class="nav-icon">📝</span><span class="nav-text">Plan</span></div>
@@ -454,7 +454,26 @@
     </div>
 </div>
 
-<di<div id="viewTracker" class="container">
+<div id="viewTracker" class="container">
+    <!-- KOPFBEREICH START -->
+    <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px; background:#3b82f6; color:white; padding:15px; border-radius:15px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+        <div id="headAvatar" style="font-size:2.5rem; width:70px; height:70px; display:flex; justify-content:center; align-items:center; background:rgba(255,255,255,0.2); border-radius:50%; overflow:hidden;"></div>
+        <div style="flex:1;">
+            <h1 id="headName" style="margin:0; font-size:1.8rem;"></h1>
+            <div style="font-size:0.95rem; margin-top:5px;">
+                Punkte: 🔵 <span id="headScoreBlue" style="font-weight:bold;">0</span> | 🟣 <span id="headScorePurple" style="font-weight:bold;">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- DATUM & NOTIZEN -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <button class="btn" style="padding:10px 15px;" onclick="chDate(-1)">◀</button>
+        <h3 id="dateDisplay" style="margin:0; font-size:1.2rem;">Heute</h3>
+        <button class="btn" style="padding:10px 15px;" onclick="chDate(1)">▶</button>
+    </div>
+    <div id="statusContainer" style="margin-bottom:15px;"></div>
+    <!-- KOPFBEREICH ENDE -->
     <div class="card" style="border-left:8px solid var(--c-blue);">
         <h2 style="color:var(--c-blue)">🔵 Mein Bereich</h2>
         <div id="listGeneral"></div>
@@ -1175,29 +1194,42 @@ function updateUI() {
     if(!c) return;
     
     const bal = getBalances(c.id);
-    const lvl = calcLevel(bal.lifetime);
 
-    document.getElementById('headAvatar').innerText = c.avatar;
-    document.getElementById('headName').innerText = c.name;
-    document.getElementById('headScoreBlue').innerText = bal.blue;
-    document.getElementById('headScorePurple').innerText = bal.purpleEvent; 
+    // KUGELSICHERER KOPFBEREICH (verhindert Abstürze)
+    const elAvatar = document.getElementById('headAvatar');
+    if (elAvatar) {
+        // Wenn es ein Foto-Code ist (sehr lang), mache ein richtiges Bild daraus:
+        if (c.avatar && c.avatar.length > 100) {
+            elAvatar.innerHTML = `<img src="${c.avatar}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+        } else {
+            // Ansonsten zeige das alte Emoji (oder ein Standard-Gesicht)
+            elAvatar.innerText = c.avatar || "👦";
+        }
+    }
+
+    if(document.getElementById('headName')) document.getElementById('headName').innerText = c.name;
+    if(document.getElementById('headScoreBlue')) document.getElementById('headScoreBlue').innerText = bal.blue;
+    if(document.getElementById('headScorePurple')) document.getElementById('headScorePurple').innerText = bal.purpleEvent;
 
     const today = getFDate(new Date());
     const curr = getFDate(uiDate);
-    document.getElementById('dateDisplay').innerText = (curr===today) ? "Heute" : formatDateDE(curr);
+    if(document.getElementById('dateDisplay')) document.getElementById('dateDisplay').innerText = (curr===today) ? "Heute" : formatDateDE(curr);
 
     if(c.note === undefined) c.note = '';
-    document.getElementById('childNote').value = c.note;
+    if(document.getElementById('childNote')) document.getElementById('childNote').value = c.note;
 
     const bans = getActiveBans(c.id, uiDate);
     const sBox = document.getElementById('statusContainer');
-    if(bans.length > 0) {
-        let h = `<div class="status-box warn"><div style="font-size:2.5rem">🚫</div><div><b>ACHTUNG EINSCHRÄNKUNG!</b>`;
-        bans.forEach(b => h+=`<div style="font-weight:600;">- ${b.title}</div>`);
-        sBox.innerHTML = h+"</div></div>";
-    } else {
-        sBox.innerHTML = `<div class="status-box ok"><div style="font-size:2.5rem">✅</div><div><b>FREIE FAHRT</b><br>Alles okay! Keine Einschränkungen.</div></div>`;
+    if (sBox) {
+        if(bans.length > 0) {
+            let h = `<div class="status-box warn"><div style="font-size:2.5rem">🚫</div><div><b>ACHTUNG EINSCHRÄNKUNG!</b>`;
+            bans.forEach(b => h+=`<div style="font-weight:600;">- ${b.title}</div>`);
+            sBox.innerHTML = h+"</div></div>";
+        } else {
+            sBox.innerHTML = `<div class="status-box ok"><div style="font-size:2.5rem">✅</div><div><b>FREIE FAHRT</b><br>Alles okay! Keine Einschränkungen.</div></div>`;
+        }
     }
+}
 
     const syncBanner = document.getElementById('teamSyncBanner');
     if(checkTeamSync(curr)) {
