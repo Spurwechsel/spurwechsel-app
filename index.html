@@ -2254,22 +2254,7 @@ function handleAvatarUpload(event) {
     };
     reader.readAsDataURL(file);
 }
-// --- NOTFALL-REINIGUNG START ---
-setTimeout(function() {
-    if(state && state.children) {
-        state.children.forEach(c => {
-            // Wenn der Name aus Versehen riesiger Code geworden ist, zurücksetzen:
-            if (c.name && c.name.length > 50) {
-                c.name = "Name korrigieren";
-            }
-            // Kaputte Avatare sicherheitshalber löschen:
-            c.avatar = ""; 
-        });
-        saveData();
-        updateUI();
-    }
-}, 1000);
-// --- NOTFALL-REINIGUNG ENDE ---
+
 </script>
 </body>
 </html>
