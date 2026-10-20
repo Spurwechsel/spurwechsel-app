@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#FF00CC">
     <title>Spurwechsel Pro</title>
-    <!-- VERSION 53 -->
+    <!-- VERSION 54 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path d=%22M50 5 L90 25 L90 60 C90 80 50 95 50 95 C50 95 10 80 10 60 L10 25 Z%22 fill=%22%23ff0055%22 stroke=%22%23000%22 stroke-width=%225%22/><text x=%2250%22 y=%2270%22 font-family=%22sans-serif%22 font-size=%2255%22 font-weight=%22900%22 fill=%22%23ffee00%22 text-anchor=%22middle%22 stroke=%22%23000%22 stroke-width=%222%22>S</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -295,7 +295,7 @@
 
 <div id="loginOverlay">
     <div class="card" style="width: 100%; max-width: 400px; transform: rotate(0deg); text-align:center;">
-        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v53</span></div>
+        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v54</span></div>
         <h3 style="margin-bottom:20px; font-family:'Fredoka'; font-weight:700;">Sicherer Cloud-Login</h3>
         <input type="email" id="loginEmail" placeholder="Familien E-Mail (z.B. familie@...)">
         <input type="password" id="loginPass" placeholder="Passwort">
@@ -316,7 +316,7 @@
         <div class="score-row" style="color:var(--c-purple)"><span id="headScorePurple">0</span> 🟣</div>
     </div>
 </div>
-2<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v53</span></div></div>
+2<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v54</span></div></div>
 
 <div class="nav-sidebar no-print">
     <div class="nav-btn active" onclick="nav('viewTracker', this)"><span class="nav-icon">📝</span><span class="nav-text">Plan</span></div>
@@ -1800,25 +1800,32 @@ function renderSettingsLists() {
 const corrSel = document.getElementById('corrChildSelect');
     if (corrSel) { corrSel.innerHTML = cOpts; loadCorrectionBalances(); }
     if(state.children) {
-        document.getElementById('setChildList').innerHTML = state.children.map(c => `
+       document.getElementById('setChildList').innerHTML = state.children.map(c => `
             <div style="border:var(--border); border-radius:15px; padding:15px; margin-bottom:10px; background:white; box-shadow:var(--shadow-sm);">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="display:flex; align-items:center; gap:10px;"><span style="font-size:2rem">${c.avatar}</span> <b style="font-size:1.2rem;">${c.name}</b></div>
-                    <div style="display:flex; gap:5px;">
-                        <button class="btn btn-p" style="width:auto; padding:8px;" onclick="openEditChild('${c.id}')">✏️</button>
-                        <button type="button" class="btn btn-warn" style="width:auto; padding:8px;" onclick="addBanModal('${c.id}')">🚫</button>
-                        <button class="btn btn-d" style="width:auto; padding:8px;" onclick="delChild('${c.id}')">🗑</button>
-                    </div>
+                
+                <!-- OBERE ZEILE: Avatar und Name -->
+                <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
+                    ${c.avatar && c.avatar.startsWith('data:image') ? `<img src="${c.avatar}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid #3b82f6;">` : `<span style="font-size:2.5rem">${c.avatar}</span>`}
+                    <b style="font-size:1.4rem; word-break:break-word;">${c.name}</b>
                 </div>
+                
+                <!-- UNTERE ZEILE: Die drei Buttons sauber nebeneinander aufgeteilt -->
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-p" style="flex:1; margin:0; padding:12px; font-size:1.2rem;" onclick="openEditChild('${c.id}')">✏️</button>
+                    <button type="button" class="btn btn-warn" style="flex:1; margin:0; padding:12px; font-size:1.2rem;" onclick="addBanModal('${c.id}')">🚫</button>
+                    <button class="btn btn-d" style="flex:1; margin:0; padding:12px; font-size:1.2rem;" onclick="delChild('${c.id}')">🗑</button>
+                </div>
+                
+                <!-- Sperren (Bans) -->
                 ${(c.bans||[]).map(b=>`
-                <div style="background:#fecaca; border:2px solid #000; padding:5px; margin-top:5px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
-                    <b>${b.title}</b> <small>(bis ${formatDateDE(b.end)})</small>
+                <div style="background:#fecaca; border:2px solid #000; padding:5px; margin-top:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <b>${b.title}</b> <small>(bis${formatDateDE(b.end)})</small>
                     <div style="display:flex; gap:5px;">
-                        <button class="btn" style="width:auto;margin:0;padding:2px 10px;background:white;color:black;border:2px solid #000;" onclick="openEditBanModal('${c.id}', ${b.id})">✏️</button>
+                        <button class="btn" style="width:auto;margin:0;padding:2px 10px;background:white;color:black;border:2px solid #000;" onclick="openEditBanModal('${c.id}',${b.id})">✏️</button>
                         <button class="btn" style="width:auto;margin:0;padding:2px 10px;background:white;color:red;border:2px solid #000;" onclick="delBan('${c.id}',${b.id})">X</button>
                     </div>
                 </div>`).join('')}
-            </div>
+            </div>`).join('');
         `).join('');
     }
 
