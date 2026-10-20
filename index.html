@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#FF00CC">
     <title>Spurwechsel Pro</title>
-    <!-- VERSION 50 -->
+    <!-- VERSION 51 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path d=%22M50 5 L90 25 L90 60 C90 80 50 95 50 95 C50 95 10 80 10 60 L10 25 Z%22 fill=%22%23ff0055%22 stroke=%22%23000%22 stroke-width=%225%22/><text x=%2250%22 y=%2270%22 font-family=%22sans-serif%22 font-size=%2255%22 font-weight=%22900%22 fill=%22%23ffee00%22 text-anchor=%22middle%22 stroke=%22%23000%22 stroke-width=%222%22>S</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -295,7 +295,7 @@
 
 <div id="loginOverlay">
     <div class="card" style="width: 100%; max-width: 400px; transform: rotate(0deg); text-align:center;">
-        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v50</span></div>
+        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v51</span></div>
         <h3 style="margin-bottom:20px; font-family:'Fredoka'; font-weight:700;">Sicherer Cloud-Login</h3>
         <input type="email" id="loginEmail" placeholder="Familien E-Mail (z.B. familie@...)">
         <input type="password" id="loginPass" placeholder="Passwort">
@@ -317,7 +317,7 @@
     </div>
 </div>
 
-<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v50</span></div></div>
+<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v51</span></div></div>
 
 <div class="nav-sidebar no-print">
     <div class="nav-btn active" onclick="nav('viewTracker', this)"><span class="nav-icon">📝</span><span class="nav-text">Plan</span></div>
@@ -336,7 +336,7 @@
 <div id="pinModal" class="modal">
     <div class="modal-box">
         <h2>🔒 PIN Eingabe</h2>
-        <input type="password" id="pinInput" placeholder="0000" style="text-align:center;font-size:2rem; letter-spacing:5px;">
+        <input type="password" id="pinInput" placeholder="0000" style="text-align:center; font-size:2rem; letter-spacing:5px;" onkeypress="if(event.key === 'Enter') checkPin()">
         <button class="btn btn-p" onclick="checkPin()">OK</button>
         <button class="btn" onclick="document.getElementById('pinModal').classList.remove('open')">Abbruch</button>
     </div>
@@ -364,12 +364,14 @@
         <div id="editAvatarGrid" class="avatar-grid"></div>
         
         <label style="font-weight:bold; font-size:0.9rem; margin-top:10px; display:block;">Taschengeld Automatik:</label>
-        <div style="display:flex; gap:10px;">
-            <input type="number" id="editTgAmount" placeholder="Betrag in €">
-            <select id="editTgInterval"><option value="Woche">Wöchentlich</option><option value="Monat">Monatlich</option></select>
+<div style="display:flex; gap:10px;">
+    <input type="number" id="editTgAmount" placeholder="Betrag in €">
+    <select id="editTgInterval"><option value="Woche">Wöchentlich</option><option value="Monat">Monatlich</option></select>
+</div> <!-- WICHTIG: Dieses </div> schließt die Taschengeld-Zeile ab! -->
+
 <label style="display:flex; align-items:center; gap:5px; margin-top:15px; background:#e0f2fe; padding:10px; border-radius:8px; border:2px solid #000; cursor:pointer;">
-                <input type="checkbox" id="editCPause" style="width:auto; margin:0;"> 🏖️ Pausenmodus (Nur Ziele/Aufgaben pausieren)
-            </label>
+    <input type="checkbox" id="editCPause" style="width:auto; margin:0;"> 🏖️ Pausenmodus (Nur Ziele/Aufgaben pausieren)
+</label>
         </div>
         
         <button class="btn btn-p" style="margin-top:15px;" onclick="saveEditChild()">Änderungen speichern</button>
@@ -585,13 +587,19 @@
 <div id="viewStats" class="container hidden">
     <h2 class="no-print">📈 Statistik</h2>
     <div class="card no-print">
-        <div style="display:flex; gap:10px; margin-bottom:10px;">
-            <div style="flex:1"><label style="font-weight:bold; font-size:0.8rem;">Von</label><input type="date" id="statStart"></div>
-            <div style="flex:1"><label style="font-weight:bold; font-size:0.8rem;">Bis</label><input type="date" id="statEnd"></div>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <label style="font-weight:bold; font-size:0.8rem; width:30px;">Von</label>
+                <input type="date" id="statStart" style="flex:1; padding:8px; border-radius:6px; border:1px solid #ccc;">
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <label style="font-weight:bold; font-size:0.8rem; width:30px;">Bis</label>
+                <input type="date" id="statEnd" style="flex:1; padding:8px; border-radius:6px; border:1px solid #ccc;">
+            </div>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
             <label style="font-weight:bold;">Ziele Filtern:</label>
-            <button class="btn btn-ghost" style="width:auto; padding:5px 10px; font-size:0.8rem; margin:0; border:2px solid #000;" onclick="selectAllStats()">Alle anwählen</button>
+            <button class="btn btn-ghost" style="width:auto; padding:5px 10px; font-size:0.8rem; margin:0; border:2px solid #000;"onclick="selectAllStats()">Alle anwählen</button>
         </div>
         <div id="statFilters" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
         <button class="btn btn-p" onclick="drawStats()" style="margin-top:15px;">Grafik Zeichnen</button>
