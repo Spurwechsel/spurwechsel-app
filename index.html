@@ -370,14 +370,16 @@
 </div> <!-- WICHTIG: Dieses </div> schließt die Taschengeld-Zeile ab! -->
 
 <label style="display:flex; align-items:center; gap:5px; margin-top:15px; background:#e0f2fe; padding:10px; border-radius:8px; border:2px solid #000; cursor:pointer;">
-    <input type="checkbox" id="editCPause" style="width:auto; margin:0;"> 🏖️ Pausenmodus (Nur Ziele/Aufgaben pausieren)
-</label>
+            <input type="checkbox" id="editCPause" style="width:auto; margin:0;"> 🏖️ Pausenmodus (Nur Ziele/Aufgaben pausieren)
+        </label>
+
+        <!-- Buttons ordentlich in einer eigenen Box anordnen -->
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:25px;">
+            <button class="btn btn-p" style="margin:0; padding:12px; font-size:1.1rem;" onclick="saveEditChild()">Änderungen speichern</button>
+            <button class="btn" style="margin:0; padding:12px; font-size:1.1rem; background:#cbd5e1; color:black; border:none;" onclick="document.getElementById('editChildModal').classList.remove('open')">Abbruch</button>
         </div>
-        
-        <button class="btn btn-p" style="margin-top:15px;" onclick="saveEditChild()">Änderungen speichern</button>
-        <button class="btn" onclick="document.getElementById('editChildModal').classList.remove('open')">Abbruch</button>
-    </div>
-</div>
+    </div> <!-- WICHTIG: Das schließt den weißen Fenster-Inhalt -->
+</div> <!-- WICHTIG: Das schließt das gesamte Modal -->
 
 <div id="editBehavModal" class="modal">
     <div class="modal-box">
