@@ -360,7 +360,13 @@
         <input type="text" id="editCName" placeholder="Name" style="text-align:center; font-weight:bold; font-size:1.2rem;">
         
         <label style="font-weight:bold; font-size:0.9rem; margin-top:10px; display:block;">Avatar wählen:</label>
-        <div id="editAvatarGrid" class="avatar-grid"></div>
+       <button type="button" class="btn" style="width:100%; padding:10px; background:#f8fafc; border:2px solid #e2e8f0; border-radius:8px; font-weight:bold; cursor:pointer; margin-bottom:10px; color:#000;" onclick="const w = document.getElementById('editIconWrapper'); w.style.display = w.style.display === 'none' ? 'block' : 'none';">
+    🎨 Standard-Icons ein-/ausblenden
+</button>
+
+<div id="editIconWrapper" style="display: none; padding-top: 10px;">
+    <div id="editAvatarGrid" class="avatar-grid"></div>
+</div>
         
         <label style="font-weight:bold; font-size:0.9rem; margin-top:10px; display:block;">Taschengeld Automatik:</label>
 <div style="display:flex; gap:10px;">
