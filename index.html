@@ -2244,12 +2244,37 @@ function saveData() {
     });
 }
 
+// --- DEIN NAVIGATIONS-MOTOR (Wiederhergestellt) ---
+function nav(v, b) {
+    document.querySelectorAll('.container').forEach(e=>e.classList.add('hidden'));
+    document.getElementById(v).classList.remove('hidden');
+    document.querySelectorAll('.nav-btn').forEach(e=>e.classList.remove('active'));
+    if(b) b.classList.add('active');
+    updateUI();
+    if(v==='viewStats') prepareStats();
+    if(v==='viewSettings') renderSettingsLists();
+}
+
+function changeDate(d) { uiDate.setDate(uiDate.getDate()+d); updateUI(); }
+
+function requestPin() { document.getElementById('pinInput').value=''; document.getElementById('pinModal').classList.add('open'); }
+
+function checkPin() { 
+    if(document.getElementById('pinInput').value===state.settings.pin) { 
+        document.getElementById('pinModal').classList.remove('open'); 
+        nav('viewSettings', null); 
+    } else {
+        alert("Falscher PIN!"); 
+    }
+}
+
+// --- DEIN DROPDOWN-MENÜ (Mit Anti-Oval-Schutz) ---
 function openChildModal() { 
     document.getElementById('childListModal').innerHTML = state.children.map(c => {
-        // --- DIE BILD-WEICHE FÜR DAS MENÜ ---
         let avatarHtml = '';
         if (c.avatar && c.avatar.startsWith('data:image')) {
-            avatarHtml = `<img src="${c.avatar}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #3b82f6;">`;
+            // min-width und flex-shrink:0 zwingen das Bild, perfekt rund zu bleiben!
+            avatarHtml = `<img src="${c.avatar}" style="width:50px; height:50px; min-width:50px; flex-shrink:0; border-radius:50%; object-fit:cover; border:2px solid #3b82f6;">`;
         } else {
             avatarHtml = `<span style="font-size:2.5rem">${c.avatar}</span>`;
         }
