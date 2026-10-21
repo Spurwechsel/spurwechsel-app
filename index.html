@@ -682,23 +682,22 @@
         <button class="btn btn-d" style="background:#475569; width:100%; border:none; color:white;" onclick="restoreBackup()">Letztes Backup laden</button>
     </div>
 
-        <h3>Kinder verwalten</h3>
+       <h3>Kinder verwalten</h3>
         <div id="setChildList"></div>
         <div style="background:#f0f9ff; padding:15px; border:2px dashed #000; border-radius:15px; margin-top:20px;">
             <h4 style="margin-top:0;">Neues Kind anlegen</h4>
             <input type="text" id="newCName" placeholder="Name">
             <label style="font-weight:bold; font-size:0.9rem;">Avatar wählen:</label>
-            <details style="margin-top: 15px; cursor: pointer;">
-    <summary style="font-weight: bold; padding: 10px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; outline: none; margin-bottom: 10px;">
-        🎨 Standard-Icons anzeigen
-    </summary>
-    
-    <!-- Hier ist der neue Schutz-Karton: -->
-    <div style="padding-top: 10px; display: block;">
-        <div id="avatarGrid" class="avatar-grid"></div>
-    </div>
-    
-</details>
+            
+            <!-- Neuer, robuster Button zum Ein- und Ausblenden -->
+            <button type="button" class="btn" style="width:100%; padding:10px; background:#f8fafc; border:2px solid #e2e8f0; border-radius:8px; font-weight:bold; cursor:pointer; margin-bottom:10px; color:#000;" onclick="const w = document.getElementById('iconWrapper'); w.style.display = w.style.display === 'none' ? 'block' : 'none';">
+                🎨 Standard-Icons ein-/ausblenden
+            </button>
+            
+            <!-- Der Container, der das Grid versteckt -->
+            <div id="iconWrapper" style="display: none; padding-top: 10px;">
+                <div id="avatarGrid" class="avatar-grid"></div>
+            </div>
             <label style="font-weight:bold; font-size:0.9rem; margin-top:10px; display:block;">Start-Punkte (falls aus alter Liste):</label>
             <div style="display:flex; gap:10px;">
                 <input type="number" id="initB" placeholder="Start 🔵">
