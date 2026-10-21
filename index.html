@@ -2289,7 +2289,18 @@ function openChildModal() {
     
     document.getElementById('childModal').classList.add('open'); 
 }
+function renderAvatars() { 
+    document.getElementById('avatarGrid').innerHTML = AVATARS.map(a=>`<div class="av-opt ${selectedAvatar===a?'selected':''}" onclick="selectedAvatar='${a}';renderAvatars();">${a}</div>`).join(''); 
+}
 
+function loadCorrectionBalances() {
+    const cid = document.getElementById('corrChildSelect').value;
+    const c = state.children.find(x => x.id === cid);
+    if(c && c.money) {
+        document.getElementById('corrCash').value = parseFloat(c.money.cash).toFixed(2);
+        document.getElementById('corrSave').value = parseFloat(c.money.savings).toFixed(2);
+    }
+}
 function saveCorrectionBalances() {
     const cid = document.getElementById('corrChildSelect').value;
     const c = state.children.find(x => x.id === cid);
