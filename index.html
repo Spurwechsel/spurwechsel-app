@@ -688,7 +688,13 @@
             <h4 style="margin-top:0;">Neues Kind anlegen</h4>
             <input type="text" id="newCName" placeholder="Name">
             <label style="font-weight:bold; font-size:0.9rem;">Avatar wählen:</label>
-            <div id="avatarGrid" class="avatar-grid"></div>
+            <details style="margin-top: 15px; cursor: pointer;">
+    <summary style="font-weight: bold; padding: 10px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; outline: none; margin-bottom: 10px;">
+        🎨 Standard-Icons anzeigen
+    </summary>
+    <!-- Dein bestehendes Grid bleibt genau hier in der Mitte: -->
+    <div id="avatarGrid" class="avatar-grid"></div>
+</details>
             <label style="font-weight:bold; font-size:0.9rem; margin-top:10px; display:block;">Start-Punkte (falls aus alter Liste):</label>
             <div style="display:flex; gap:10px;">
                 <input type="number" id="initB" placeholder="Start 🔵">
