@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#FF00CC">
     <title>Spurwechsel Pro</title>
-    <!-- VERSION 55 -->
+    <!-- VERSION 56 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path d=%22M50 5 L90 25 L90 60 C90 80 50 95 50 95 C50 95 10 80 10 60 L10 25 Z%22 fill=%22%23ff0055%22 stroke=%22%23000%22 stroke-width=%225%22/><text x=%2250%22 y=%2270%22 font-family=%22sans-serif%22 font-size=%2255%22 font-weight=%22900%22 fill=%22%23ffee00%22 text-anchor=%22middle%22 stroke=%22%23000%22 stroke-width=%222%22>S</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -295,7 +295,7 @@
 
 <div id="loginOverlay">
     <div class="card" style="width: 100%; max-width: 400px; transform: rotate(0deg); text-align:center;">
-        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v55</span></div>
+        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v56</span></div>
         <h3 style="margin-bottom:20px; font-family:'Fredoka'; font-weight:700;">Sicherer Cloud-Login</h3>
         <input type="email" id="loginEmail" placeholder="Familien E-Mail (z.B. familie@...)">
         <input type="password" id="loginPass" placeholder="Passwort">
@@ -305,7 +305,7 @@
 
 <div class="app-header">
     <div class="user-chip" onclick="openChildModal()">
-        <div class="u-avatar" id="headAvatar">?</div>
+        <div class="u-avatar" id="headAvatar" style="background: transparent; border: none; box-shadow: none;">?</div>
         <div class="u-info">
             <div class="u-name" id="headName">...</div>
         </div>
@@ -316,7 +316,7 @@
         <div class="score-row" style="color:var(--c-purple)"><span id="headScorePurple">0</span> 🟣</div>
     </div>
 </div>
-2<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v55</span></div></div>
+2<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v56</span></div></div>
 
 <div class="nav-sidebar no-print">
     <div class="nav-btn active" onclick="nav('viewTracker', this)"><span class="nav-icon">📝</span><span class="nav-text">Plan</span></div>
@@ -1358,10 +1358,19 @@ function renderOverview() {
     state.children.forEach(c => {
         const bal = getBalances(c.id);
         const lvl = calcLevel(bal.lifetime);
+
+        // --- DIE BILD-WEICHE FÜR DIE ÜBERSICHT ---
+        let avatarHtml = '';
+        if (c.avatar && c.avatar.startsWith('data:image')) {
+            avatarHtml = `<img src="${c.avatar}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid black;">`;
+        } else {
+            avatarHtml = `<div style="font-size:3.5rem;">${c.avatar}</div>`;
+        }
+
         list.innerHTML += `
         <div class="overview-card" style="flex-direction: column; align-items: flex-start; gap: 10px;">
             <div style="display:flex; align-items:center; gap:15px; width: 100%;">
-                <div style="font-size:3.5rem;">${c.avatar}</div>
+                ${avatarHtml}
                 <div>
                     <div style="font-size:1.8rem; font-family:'Bangers'; line-height:1;">${c.name}</div>
                     <div style="font-size:0.8rem; font-weight:bold; color:#666;">Level ${lvl}</div>
@@ -1563,13 +1572,28 @@ function renderTeamGrid() {
     const g = document.getElementById('teamGrid');
     g.innerHTML = '';
     if(!state.children || !state.event) return;
+    
     state.children.forEach(c => {
-        const b = getBalances(c.id); const t = state.event.target; const pct = Math.min(100,(b.purpleEvent/t)*100);
+        const b = getBalances(c.id); 
+        const t = state.event.target; 
+        const pct = Math.min(100,(b.purpleEvent/t)*100);
         const done = b.purpleEvent >= t;
+        
+        // --- DIE BILD-WEICHE FÜR DAS TEAM ---
+        let avatarHtml = '';
+        if (c.avatar && c.avatar.startsWith('data:image')) {
+            avatarHtml = `<img src="${c.avatar}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid black; margin-right:10px;">`;
+        } else {
+            avatarHtml = `<span style="font-size:2.5rem; margin-right:10px;">${c.avatar}</span>`;
+        }
+
         g.innerHTML += `
         <div class="team-card">
             <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div class="team-big-text"><span style="font-size:2.5rem">${c.avatar}</span> ${c.name}</div>
+                <div class="team-big-text" style="display:flex; align-items:center;">
+                    ${avatarHtml}
+                    <span>${c.name}</span>
+                </div>
                 <div class="team-pts">${b.purpleEvent}/${t}</div>
             </div>
             <div style="height:25px;background:#fff;margin-top:10px;border:3px solid black;border-radius:15px;overflow:hidden;box-shadow:inset 2px 2px 5px rgba(0,0,0,0.2);">
@@ -1578,6 +1602,7 @@ function renderTeamGrid() {
             ${done?`<button class="btn btn-ghost" onclick="resetEvent('${c.id}')" style="margin-top:10px; border:2px solid #000;">Event abgeschlossen - Reset!</button>`:''}
         </div>`;
     });
+    
     const opts = state.children.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
     document.getElementById('trFrom').innerHTML = opts;
     document.getElementById('trTo').innerHTML = opts;
@@ -2219,27 +2244,23 @@ function saveData() {
     });
 }
 
-function nav(v, b) {
-    document.querySelectorAll('.container').forEach(e=>e.classList.add('hidden'));
-    document.getElementById(v).classList.remove('hidden');
-    document.querySelectorAll('.nav-btn').forEach(e=>e.classList.remove('active'));
-    if(b) b.classList.add('active');
-    updateUI();
-    if(v==='viewStats') prepareStats();
-    if(v==='viewSettings') renderSettingsLists();
-}
-function changeDate(d) { uiDate.setDate(uiDate.getDate()+d); updateUI(); }
-function requestPin() { document.getElementById('pinInput').value=''; document.getElementById('pinModal').classList.add('open'); }
-function checkPin() { if(document.getElementById('pinInput').value===state.settings.pin) { document.getElementById('pinModal').classList.remove('open'); nav('viewSettings', null); } else alert("Falscher PIN!"); }
-function openChildModal() { document.getElementById('childListModal').innerHTML=state.children.map(c=>`<div class="child-opt" onclick="activeChildId='${c.id}';document.getElementById('childModal').classList.remove('open');updateUI();"><span style="font-size:2.5rem">${c.avatar}</span> <span style="font-size:1.5rem">${c.name}</span></div>`).join(''); document.getElementById('childModal').classList.add('open'); }
-function renderAvatars() { document.getElementById('avatarGrid').innerHTML = AVATARS.map(a=>`<div class="av-opt ${selectedAvatar===a?'selected':''}" onclick="selectedAvatar='${a}';renderAvatars();">${a}</div>`).join(''); }
-function loadCorrectionBalances() {
-    const cid = document.getElementById('corrChildSelect').value;
-    const c = state.children.find(x => x.id === cid);
-    if(c && c.money) {
-        document.getElementById('corrCash').value = parseFloat(c.money.cash).toFixed(2);
-        document.getElementById('corrSave').value = parseFloat(c.money.savings).toFixed(2);
-    }
+function openChildModal() { 
+    document.getElementById('childListModal').innerHTML = state.children.map(c => {
+        // --- DIE BILD-WEICHE FÜR DAS MENÜ ---
+        let avatarHtml = '';
+        if (c.avatar && c.avatar.startsWith('data:image')) {
+            avatarHtml = `<img src="${c.avatar}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #3b82f6;">`;
+        } else {
+            avatarHtml = `<span style="font-size:2.5rem">${c.avatar}</span>`;
+        }
+
+        return `<div class="child-opt" style="display:flex; align-items:center; gap:15px;" onclick="activeChildId='${c.id}';document.getElementById('childModal').classList.remove('open');updateUI();">
+            ${avatarHtml}
+            <span style="font-size:1.5rem; font-weight:bold;">${c.name}</span>
+        </div>`;
+    }).join(''); 
+    
+    document.getElementById('childModal').classList.add('open'); 
 }
 
 function saveCorrectionBalances() {
