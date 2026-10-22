@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#FF00CC">
     <title>Spurwechsel Pro</title>
-    <!-- VERSION 57 -->
+    <!-- VERSION 58 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path d=%22M50 5 L90 25 L90 60 C90 80 50 95 50 95 C50 95 10 80 10 60 L10 25 Z%22 fill=%22%23ff0055%22 stroke=%22%23000%22 stroke-width=%225%22/><text x=%2250%22 y=%2270%22 font-family=%22sans-serif%22 font-size=%2255%22 font-weight=%22900%22 fill=%22%23ffee00%22 text-anchor=%22middle%22 stroke=%22%23000%22 stroke-width=%222%22>S</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -295,7 +295,7 @@
 
 <div id="loginOverlay">
     <div class="card" style="width: 100%; max-width: 400px; transform: rotate(0deg); text-align:center;">
-        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v57</span></div>
+        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v58</span></div>
         <h3 style="margin-bottom:20px; font-family:'Fredoka'; font-weight:700;">Sicherer Cloud-Login</h3>
         <input type="email" id="loginEmail" placeholder="Familien E-Mail (z.B. familie@...)">
         <input type="password" id="loginPass" placeholder="Passwort">
@@ -316,7 +316,7 @@
         <div class="score-row" style="color:var(--c-purple)"><span id="headScorePurple">0</span> 🟣</div>
     </div>
 </div>
-2<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v57</span></div></div>
+2<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v58</span></div></div>
 
 <div class="nav-sidebar no-print">
     <div class="nav-btn active" onclick="nav('viewTracker', this)"><span class="nav-icon">📝</span><span class="nav-text">Plan</span></div>
@@ -383,7 +383,7 @@
             <img id="editAvatarPreview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; display:none; margin:0 auto 10px auto; border:3px solid #3b82f6; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             
             <!-- Zwei zentrierte Buttons -->
-            <div style="display:flex; justify-content:center; gap:10px;">
+            <div style="display:flex; justify-content:center; gap:10px; margin-bottom: 15px;">
                 <label style="background:#3b82f6; color:white; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold; margin:0;">
                     📸 Kamera
                     <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleAvatarUpload(event)">
@@ -393,6 +393,16 @@
                     <input type="file" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
                 </label>
             </div>
+
+            <!-- NEU: Der Magic Comic Button -->
+            <button type="button" id="comicBtn" style="width:100%; background: linear-gradient(45deg, #f59e0b, #ec4899); color:white; padding:10px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" onclick="generateComicAvatar()">
+                🪄 Comic-Avatar generieren
+            </button>
+            
+            <!-- Versteckter Lade-Text -->
+            <p id="comicLoading" style="display:none; font-size:0.9rem; color:#d97706; margin-top:10px; font-weight:bold;">
+                ⏳ KI zeichnet... Bitte warten...
+            </p>
         </div>
         <!-- Buttons ordentlich in einer eigenen Box anordnen -->
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:25px;">
@@ -2382,6 +2392,52 @@ function handleAvatarUpload(event) {
         img.src = e.target.result;
     };
     reader.readAsDataURL(file);
+}
+async function generateComicAvatar() {
+    const preview = document.getElementById('editAvatarPreview');
+    const btn = document.getElementById('comicBtn');
+    const loading = document.getElementById('comicLoading');
+
+    // 1. Prüfen, ob überhaupt schon ein Foto da ist
+    if (!preview.src || preview.src === "" || !preview.src.startsWith('data:image')) {
+        alert("Bitte mache zuerst ein Foto (📸) oder lade eins hoch (🖼️), bevor du den Comic-Filter startest!");
+        return;
+    }
+
+    // 2. Button verstecken und Lade-Text anzeigen
+    btn.style.display = 'none';
+    loading.style.display = 'block';
+
+    try {
+        // 3. Das Bild in reinen Text (Base64) umwandeln
+        const base64Image = preview.src.split(',')[1];
+
+        // 4. Unseren neuen Mittelsmann auf dem Server anrufen!
+        const response = await fetch('/.netlify/functions/generateAvatar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64Image })
+        });
+
+        const result = await response.json();
+
+        // 5. Ergebnis prüfen
+        if (result.success) {
+            console.log("KI-Antwort:", result.data);
+            alert("Erfolg! Schau in die Browser-Konsole (F12) für das Ergebnis.");
+            // Hier bauen wir im nächsten Schritt ein, dass das Bild auch wirklich angezeigt wird!
+        } else {
+            alert("Fehler vom Server: " + result.error);
+        }
+
+    } catch (error) {
+        console.error("Fehler beim KI-Aufruf:", error);
+        alert("Es gab ein Problem bei der Verbindung zum Server.");
+    } finally {
+        // Button wieder einblenden
+        btn.style.display = 'block';
+        loading.style.display = 'none';
+    }
 }
 </script>
 </body>
