@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#FF00CC">
     <title>Spurwechsel Pro</title>
-    <!-- VERSION 57 -->
+    <!-- VERSION 59 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path d=%22M50 5 L90 25 L90 60 C90 80 50 95 50 95 C50 95 10 80 10 60 L10 25 Z%22 fill=%22%23ff0055%22 stroke=%22%23000%22 stroke-width=%225%22/><text x=%2250%22 y=%2270%22 font-family=%22sans-serif%22 font-size=%2255%22 font-weight=%22900%22 fill=%22%23ffee00%22 text-anchor=%22middle%22 stroke=%22%23000%22 stroke-width=%222%22>S</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -295,7 +295,7 @@
 
 <div id="loginOverlay">
     <div class="card" style="width: 100%; max-width: 400px; transform: rotate(0deg); text-align:center;">
-        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v57</span></div>
+        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v59</span></div>
         <h3 style="margin-bottom:20px; font-family:'Fredoka'; font-weight:700;">Sicherer Cloud-Login</h3>
         <input type="email" id="loginEmail" placeholder="Familien E-Mail (z.B. familie@...)">
         <input type="password" id="loginPass" placeholder="Passwort">
@@ -316,7 +316,7 @@
         <div class="score-row" style="color:var(--c-purple)"><span id="headScorePurple">0</span> 🟣</div>
     </div>
 </div>
-2<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v57</span></div></div>
+2<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v59</span></div></div>
 
 <div class="nav-sidebar no-print">
     <div class="nav-btn active" onclick="nav('viewTracker', this)"><span class="nav-icon">📝</span><span class="nav-text">Plan</span></div>
@@ -359,31 +359,23 @@
         <input type="hidden" id="editCId">
         <input type="text" id="editCName" placeholder="Name" style="text-align:center; font-weight:bold; font-size:1.2rem;">
         
-        <label style="font-weight:bold; font-size:0.9rem; margin-top:10px; display:block;">Avatar wählen:</label>
-       <button type="button" class="btn" style="width:100%; padding:10px; background:#f8fafc; border:2px solid #e2e8f0; border-radius:8px; font-weight:bold; cursor:pointer; margin-bottom:10px; color:#000;" onclick="const w = document.getElementById('editIconWrapper'); w.style.display = w.style.display === 'none' ? 'block' : 'none';">
-    🎨 Standard-Icons ein-/ausblenden
-</button>
-
-<div id="editIconWrapper" style="display: none; padding-top: 10px;">
-    <div id="editAvatarGrid" class="avatar-grid"></div>
-</div>
-        
         <label style="font-weight:bold; font-size:0.9rem; margin-top:10px; display:block;">Taschengeld Automatik:</label>
-<div style="display:flex; gap:10px;">
-    <input type="number" id="editTgAmount" placeholder="Betrag in €">
-    <select id="editTgInterval"><option value="Woche">Wöchentlich</option><option value="Monat">Monatlich</option></select>
-</div> <!-- WICHTIG: Dieses </div> schließt die Taschengeld-Zeile ab! -->
+        <div style="display:flex; gap:10px;">
+            <input type="number" id="editTgAmount" placeholder="Betrag in €">
+            <select id="editTgInterval"><option value="Woche">Wöchentlich</option><option value="Monat">Monatlich</option></select>
+        </div> 
 
-<label style="display:flex; align-items:center; gap:5px; margin-top:15px; background:#e0f2fe; padding:10px; border-radius:8px; border:2px solid #000; cursor:pointer;">
+        <label style="display:flex; align-items:center; gap:5px; margin-top:15px; background:#e0f2fe; padding:10px; border-radius:8px; border:2px solid #000; cursor:pointer;">
             <input type="checkbox" id="editCPause" style="width:auto; margin:0;"> 🏖️ Pausenmodus (Nur Ziele/Aufgaben pausieren)
         </label>
-<!-- AVATAR UPLOAD -->
+
+        <!-- AVATAR UPLOAD & PIXAR GALERIE -->
         <div style="margin-top:20px; text-align:center; background:#f8fafc; padding:15px; border-radius:8px; border:2px solid #cbd5e1;">
             <p style="font-size:0.9rem; color:#475569; margin-top:0; margin-bottom:10px;"><b>Profilbild / Avatar</b></p>
             <img id="editAvatarPreview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; display:none; margin:0 auto 10px auto; border:3px solid #3b82f6; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             
             <!-- Zwei zentrierte Buttons -->
-            <div style="display:flex; justify-content:center; gap:10px;">
+            <div style="display:flex; justify-content:center; gap:10px; margin-bottom: 15px;">
                 <label style="background:#3b82f6; color:white; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold; margin:0;">
                     📸 Kamera
                     <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleAvatarUpload(event)">
@@ -393,7 +385,23 @@
                     <input type="file" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
                 </label>
             </div>
+
+            <!-- Neue Pixar-Avatar-Galerie -->
+            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 15px 0;">
+            <p style="font-size: 0.9em; font-weight: bold; margin-bottom: 10px; color:#0f172a;">Oder wähle einen Pixar-Avatar:</p>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                <img src="avatar1.png" onclick="setPixarAvatar('avatar1.png')" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                <img src="avatar2.png" onclick="setPixarAvatar('avatar2.png')" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                <img src="avatar3.png" onclick="setPixarAvatar('avatar3.png')" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                <img src="avatar4.png" onclick="setPixarAvatar('avatar4.png')" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                <img src="avatar5.png" onclick="setPixarAvatar('avatar5.png')" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                <img src="avatar6.png" onclick="setPixarAvatar('avatar6.png')" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                <img src="avatar7.png" onclick="setPixarAvatar('avatar7.png')" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+            </div>
         </div>
+        
+        <!-- Unter diesem </div> steht in deiner Datei dann der "Änderungen speichern" Button -->
         <!-- Buttons ordentlich in einer eigenen Box anordnen -->
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:25px;">
             <button class="btn btn-p" style="margin:0; padding:12px; font-size:1.1rem;" onclick="saveEditChild()">Änderungen speichern</button>
@@ -2382,6 +2390,15 @@ function handleAvatarUpload(event) {
         img.src = e.target.result;
     };
     reader.readAsDataURL(file);
+}
+   function setPixarAvatar(bildDateiname) {
+    // 1. Macht das Vorschaubild sichtbar und tauscht das Bild aus
+    const preview = document.getElementById('editAvatarPreview');
+    preview.src = bildDateiname;
+    preview.style.display = 'block';
+    
+    // 2. Übergibt den Dateinamen an deine bestehende Speicher-Logik
+    uploadedAvatarBase64 = bildDateiname; 
 }
 </script>
 </body>
