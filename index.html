@@ -2044,14 +2044,14 @@ function openEditChild(id) {
     editSelectedAvatar = c.avatar;
     tempAvatarData = null; // WICHTIG: Leert das Wartezimmer, damit kein altes Foto hängenbleibt
 
-  // --- BILD-VORSCHAU LADEN ---
+ // --- BILD-VORSCHAU LADEN ---
     const preview = document.getElementById('editAvatarPreview');
-    if (c.avatar && c.avatar.startsWith('data:image')) {
+    if (c.avatar && (c.avatar.startsWith('data:image') || c.avatar.includes('.png'))) {
         preview.src = c.avatar;
-        preview.style.display = 'block'; // Zeigt das Foto im Kreis an
+        preview.style.display = 'block'; // Zeigt das Foto oder den Pixar-Avatar im Kreis an
     } else {
         preview.src = '';
-        preview.style.display = 'none';  // Versteckt den Kreis, wenn es nur ein Emoji ist
+        preview.style.display = 'none';  // Versteckt den Kreis, wenn kein Bild da ist
     }
 
     document.getElementById('editChildModal').classList.add('open');
@@ -2067,12 +2067,10 @@ function saveEditChild() {
     const c = state.children.find(x => x.id === id);
     c.name = n;
     
-    // --- NEUE BILD-LOGIK ---
+    // --- BILD SPEICHERN ---
     if (tempAvatarData) {
-        c.avatar = tempAvatarData; // Speichert das echte Foto!
+        c.avatar = tempAvatarData; // Speichert das Kamera-Foto ODER den Pixar-Avatar
         tempAvatarData = null;     // Leert das Wartezimmer für das nächste Kind
-    } else if (editSelectedAvatar) {
-        c.avatar = editSelectedAvatar; // Nimmt das Emoji, falls kein Foto gemacht wurde
     }
     
     if(!c.money) c.money = {cash:0, savings:0, history:[], lastPaidWeek: getIsoWeek(new Date()), lastPaidMonth: getIsoMonth(new Date())};
@@ -2082,6 +2080,7 @@ function saveEditChild() {
     
     saveData(); 
     document.getElementById('editChildModal').classList.remove('open');
+}
     
     // Zwingt die App, die Liste und den blauen Balken sofort neu zu zeichnen!
     if(typeof updateSetup === 'function') updateSetup();
@@ -2389,13 +2388,12 @@ function handleAvatarUpload(event) {
     reader.readAsDataURL(file);
 }
    function setPixarAvatar(bildDateiname) {
-    // 1. Macht das Vorschaubild sichtbar und tauscht das Bild aus
     const preview = document.getElementById('editAvatarPreview');
     preview.src = bildDateiname;
     preview.style.display = 'block';
     
-    // 2. Übergibt den Dateinamen an deine bestehende Speicher-Logik
-    uploadedAvatarBase64 = bildDateiname; 
+    // WICHTIG: Jetzt landet der Avatar im richtigen "Wartezimmer" für den Speicher-Button
+    tempAvatarData = bildDateiname; 
 }
 </script>
 </body>
