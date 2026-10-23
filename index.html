@@ -2044,7 +2044,7 @@ function openEditChild(id) {
     editSelectedAvatar = c.avatar;
     tempAvatarData = null; // WICHTIG: Leert das Wartezimmer, damit kein altes Foto hängenbleibt
 
-    // --- BILD-VORSCHAU LADEN ---
+  // --- BILD-VORSCHAU LADEN ---
     const preview = document.getElementById('editAvatarPreview');
     if (c.avatar && c.avatar.startsWith('data:image')) {
         preview.src = c.avatar;
@@ -2054,9 +2054,9 @@ function openEditChild(id) {
         preview.style.display = 'none';  // Versteckt den Kreis, wenn es nur ein Emoji ist
     }
 
- document.getElementById('editChildModal').classList.add('open');
+    document.getElementById('editChildModal').classList.add('open');
 }
-}
+
 function saveEditChild() {
     const id = document.getElementById('editCId').value;
     const n = document.getElementById('editCName').value;
