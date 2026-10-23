@@ -1245,7 +1245,7 @@ function updateUI() {
 
     // --- NEUE BILD-WEICHE FÜR DEN KOPFBEREICH ---
     const headAvatar = document.getElementById('headAvatar');
-    if (c.avatar && c.avatar.startsWith('data:image')) {
+    if (c.avatar && (c.avatar.startsWith('data:image') || c.avatar.includes('.png'))) {
         // Macht ein wunderschönes, rundes Bild mit weißem Rand in den blauen Balken
         headAvatar.innerHTML = `<img src="${c.avatar}" style="width:50px; height:50px; min-width:50px; min-height:50px; flex-shrink:0; display:block; border-radius:50%; object-fit:cover; border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.2); vertical-align:middle;">`;
     } else {
@@ -1384,7 +1384,7 @@ function renderOverview() {
 
         // --- DIE BILD-WEICHE FÜR DIE ÜBERSICHT ---
         let avatarHtml = '';
-        if (c.avatar && c.avatar.startsWith('data:image')) {
+        if (c.avatar && (c.avatar.startsWith('data:image') || c.avatar.includes('.png'))) {
             avatarHtml = `<img src="${c.avatar}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid black;">`;
         } else {
             avatarHtml = `<div style="font-size:3.5rem;">${c.avatar}</div>`;
@@ -1602,9 +1602,9 @@ function renderTeamGrid() {
         const pct = Math.min(100,(b.purpleEvent/t)*100);
         const done = b.purpleEvent >= t;
         
-        // --- DIE BILD-WEICHE FÜR DAS TEAM ---
+       // --- DIE BILD-WEICHE FÜR DAS TEAM ---
         let avatarHtml = '';
-        if (c.avatar && c.avatar.startsWith('data:image')) {
+        if (c.avatar && (c.avatar.startsWith('data:image') || c.avatar.includes('.png'))) {
             avatarHtml = `<img src="${c.avatar}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid black; margin-right:10px;">`;
         } else {
             avatarHtml = `<span style="font-size:2.5rem; margin-right:10px;">${c.avatar}</span>`;
@@ -1861,9 +1861,9 @@ function renderSettingsLists() {
     
     if(state.children) {
        document.getElementById('setChildList').innerHTML = state.children.map(c => {
-        // Prüfen ob echtes Foto oder Emoji
+        // Prüfen ob echtes Foto, Pixar-Avatar oder Emoji
         let avatarHtml = '';
-        if (c.avatar && c.avatar.startsWith('data:image')) {
+        if (c.avatar && (c.avatar.startsWith('data:image') || c.avatar.includes('.png'))) {
             avatarHtml = `<img src="${c.avatar}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid #3b82f6;">`;
         } else {
             avatarHtml = `<span style="font-size:2.5rem">${c.avatar}</span>`;
@@ -2297,7 +2297,7 @@ function checkPin() {
 function openChildModal() { 
     document.getElementById('childListModal').innerHTML = state.children.map(c => {
         let avatarHtml = '';
-        if (c.avatar && c.avatar.startsWith('data:image')) {
+        if (c.avatar && (c.avatar.startsWith('data:image') || c.avatar.includes('.png'))) {
             // min-width und flex-shrink:0 zwingen das Bild, perfekt rund zu bleiben!
             avatarHtml = `<img src="${c.avatar}" style="width:50px; height:50px; min-width:50px; flex-shrink:0; border-radius:50%; object-fit:cover; border:2px solid #3b82f6;">`;
         } else {
