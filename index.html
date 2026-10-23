@@ -2055,7 +2055,7 @@ function openEditChild(id) {
     }
 
     document.getElementById('editChildModal').classList.add('open');
-}
+} // <-- Hier ist jetzt garantiert nur noch EINE schließende Klammer!
 
 function saveEditChild() {
     const id = document.getElementById('editCId').value;
