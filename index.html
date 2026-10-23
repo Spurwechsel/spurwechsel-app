@@ -2055,7 +2055,7 @@ function openEditChild(id) {
     }
 
     document.getElementById('editChildModal').classList.add('open');
-} // <-- Hier ist jetzt garantiert nur noch EINE schließende Klammer!
+} 
 
 function saveEditChild() {
     const id = document.getElementById('editCId').value;
@@ -2080,7 +2080,6 @@ function saveEditChild() {
     
     saveData(); 
     document.getElementById('editChildModal').classList.remove('open');
-}
     
     // Zwingt die App, die Liste und den blauen Balken sofort neu zu zeichnen!
     if(typeof updateSetup === 'function') updateSetup();
@@ -2104,8 +2103,13 @@ function addChild() {
     saveData();
     document.getElementById('newCName').value=''; document.getElementById('initB').value=''; document.getElementById('initP').value=''; document.getElementById('tgAmount').value='';
 }
-function delChild(id) { if(confirm('Wirklich das Kind inklusive aller Punkte löschen?')) { state.children=state.children.filter(x=>x.id!==id); saveData(); }}
 
+function delChild(id) { 
+    if(confirm('Wirklich das Kind inklusive aller Punkte löschen?')) { 
+        state.children=state.children.filter(x=>x.id!==id); 
+        saveData(); 
+    }
+}
 function openEditBehavModal(bId) {
     const b = state.behaviors.find(x => x.id === bId);
     if(!b) return;
