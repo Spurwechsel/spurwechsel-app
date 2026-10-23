@@ -2054,11 +2054,8 @@ function openEditChild(id) {
         preview.style.display = 'none';  // Versteckt den Kreis, wenn es nur ein Emoji ist
     }
 
-    renderEditAvatars();
-    document.getElementById('editChildModal').classList.add('open');
+ document.getElementById('editChildModal').classList.add('open');
 }
-function renderEditAvatars() {
-    document.getElementById('editAvatarGrid').innerHTML = AVATARS.map(a=>`<div class="av-opt ${editSelectedAvatar===a?'selected':''}" onclick="editSelectedAvatar='${a}';renderEditAvatars();">${a}</div>`).join('');
 }
 function saveEditChild() {
     const id = document.getElementById('editCId').value;
