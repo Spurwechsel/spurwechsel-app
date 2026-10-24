@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#FF00CC">
     <title>Spurwechsel Pro</title>
-    <!-- VERSION 59 -->
+    <!-- VERSION 60 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path d=%22M50 5 L90 25 L90 60 C90 80 50 95 50 95 C50 95 10 80 10 60 L10 25 Z%22 fill=%22%23ff0055%22 stroke=%22%23000%22 stroke-width=%225%22/><text x=%2250%22 y=%2270%22 font-family=%22sans-serif%22 font-size=%2255%22 font-weight=%22900%22 fill=%22%23ffee00%22 text-anchor=%22middle%22 stroke=%22%23000%22 stroke-width=%222%22>S</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -295,7 +295,7 @@
 
 <div id="loginOverlay">
     <div class="card" style="width: 100%; max-width: 400px; transform: rotate(0deg); text-align:center;">
-        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v59</span></div>
+        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v60</span></div>
         <h3 style="margin-bottom:20px; font-family:'Fredoka'; font-weight:700;">Sicherer Cloud-Login</h3>
         <input type="email" id="loginEmail" placeholder="Familien E-Mail (z.B. familie@...)">
         <input type="password" id="loginPass" placeholder="Passwort">
@@ -316,7 +316,7 @@
         <div class="score-row" style="color:var(--c-purple)"><span id="headScorePurple">0</span> 🟣</div>
     </div>
 </div>
-2<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v59</span></div></div>
+2<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v60</span></div></div>
 
 <div class="nav-sidebar no-print">
     <div class="nav-btn active" onclick="nav('viewTracker', this)"><span class="nav-icon">📝</span><span class="nav-text">Plan</span></div>
@@ -369,6 +369,24 @@
             <input type="checkbox" id="editCPause" style="width:auto; margin:0;"> 🏖️ Pausenmodus (Nur Ziele/Aufgaben pausieren)
         </label>
 
+<!-- BRO-MISSION MODAL -->
+<div id="broMissionModal" class="modal">
+    <div class="modal-content">
+        <h2>🤝 Bro-Mission starten</h2>
+        <p id="broMissionDesc" style="margin-bottom: 15px; font-size: 1.1rem;"></p>
+        <input type="hidden" id="broMissionItemId">
+        
+        <label style="display:block; margin-bottom:5px; font-weight:bold;">Mit wem möchtest du die Mission machen?</label>
+        <select id="broMissionPartner" style="width:100%; padding:10px; margin-bottom:20px; font-size:1.1rem; border-radius: 8px;">
+            <!-- Wird per JavaScript gefüllt -->
+        </select>
+        
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-p" onclick="startBroMission()">Mission starten!</button>
+            <button class="btn btn-ghost" onclick="closeBroMissionModal()">Abbrechen</button>
+        </div>
+    </div>
+</div>
         <!-- AVATAR UPLOAD & PIXAR GALERIE -->
         <div style="margin-top:20px; text-align:center; background:#f8fafc; padding:15px; border-radius:8px; border:2px solid #cbd5e1;">
             <p style="font-size:0.9rem; color:#475569; margin-top:0; margin-bottom:10px;"><b>Profilbild / Avatar</b></p>
@@ -780,21 +798,28 @@
         </div>
     </div>
 
-    <div class="card">
+  <div class="card">
         <h3>Belohnungen (Shop)</h3>
         <div id="setShopList"></div>
         <div style="margin-top:15px; border-top:2px dashed #000; padding-top:15px;">
             <input type="text" id="newSTitle" placeholder="Belohnung">
-            <div style="display:flex; gap:10px;">
+            <div style="display:flex; gap:10px; margin-bottom: 10px;">
                 <input type="number" id="newSCost" placeholder="Preis">
-                <select id="newSCurrency"><option value="general">🔵 Aufgaben-Coins</option><option value="social">🟣 Sozial-Punkte</option></select>
+                <select id="newSCurrency">
+                    <option value="general">🔵 Aufgaben-Coins</option>
+                    <option value="social">🟣 Sozial-Punkte</option>
+                </select>
             </div>
+            
+            <!-- NEU: Checkbox für Bro-Mission -->
+            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="newSBroMission" style="width: 24px; height: 24px; cursor: pointer;">
+                <label for="newSBroMission" style="font-size: 1.1rem; cursor: pointer;">Als <b>Bro-Mission</b> (50/50) erlauben</label>
+            </div>
+
             <button class="btn btn-p" onclick="addShop()">In Shop stellen</button>
         </div>
     </div>
-</div>
-
-<script>
 
 
 const firebaseConfig = {
@@ -1698,12 +1723,22 @@ function renderShop() {
             let col = isSocial ? 'var(--c-purple)' : 'var(--c-blue)';
             let icon = isSocial ? '🟣 Sozial' : '🔵 Aufgaben';
             
-            const safeTitle = (s.title || "").replace(/'/g, "\'");
+            const safeTitle = (s.title || "").replace(/'/g, "\\'");
+
+            // NEU: Prüfen, ob es eine Bro-Mission ist. Wenn ja, bauen wir einen extra Button!
+            let broBtn = '';
+            if (s.isBroMission) {
+                // Gibt die ID des Shop-Artikels an das noch zu bauende Fenster weiter
+                broBtn = `<button class="btn btn-s" style="width:auto; padding:10px 15px; margin:0 10px 0 0; background: #f59e0b; color: white;" onclick="openBroMissionModal('${s.id}')">🤝 Bro-Mission</button>`;
+            }
 
             d.innerHTML += `
             <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:15px; margin-bottom:10px; border-radius:15px;">
                 <div><b style="font-size:1.2rem;">${s.title}</b><br><span style="color:${col}; font-weight:800; font-size:1.1rem;">${s.cost} ${icon}</span></div>
-                <button class="btn ${can?'btn-p':'btn-ghost'}" style="width:auto; padding:10px 20px; margin:0;" onclick="buy('${safeTitle}',${s.cost},'${s.currency}')" ${!can?'disabled':''}>Holen</button>
+                <div style="display:flex; align-items:center;">
+                    ${broBtn}
+                    <button class="btn ${can?'btn-p':'btn-ghost'}" style="width:auto; padding:10px 20px; margin:0;" onclick="buy('${safeTitle}',${s.cost},'${s.currency}')" ${!can?'disabled':''}>Holen</button>
+                </div>
             </div>`;
         });
     }
@@ -1714,6 +1749,60 @@ function renderShop() {
         }).join('');
     }
 }
+function openBroMissionModal(shopItemId) {
+    const item = state.shopItems.find(x => x.id === shopItemId);
+    if(!item) return;
+    
+    document.getElementById('broMissionItemId').value = item.id;
+    
+    // Beschreibung und Halber Preis berechnen
+    const halfPrice = item.cost / 2;
+    let icon = item.currency === 'social' ? '🟣 Sozial-Punkte' : '🔵 Aufgaben-Coins';
+    document.getElementById('broMissionDesc').innerHTML = `Ziel: <b>${item.title}</b><br>Jeder spart: <b>${halfPrice} ${icon}</b>`;
+    
+    // Dropdown mit Brüdern füllen (ohne das aktuell ausgewählte Kind)
+    const partnerSelect = document.getElementById('broMissionPartner');
+    partnerSelect.innerHTML = '<option value="">-- Bruder auswählen --</option>';
+    
+    state.children.forEach(c => {
+        if(c.id !== activeChildId) {
+            partnerSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+        }
+    });
+    
+    document.getElementById('broMissionModal').classList.add('open');
+}
+
+function closeBroMissionModal() {
+    document.getElementById('broMissionModal').classList.remove('open');
+}
+
+function startBroMission() {
+    const itemId = document.getElementById('broMissionItemId').value;
+    const partnerId = document.getElementById('broMissionPartner').value;
+    
+    if(!partnerId) return alert("Bitte wähle einen Bruder aus!");
+    
+    const item = state.shopItems.find(x => x.id === itemId);
+    if(!state.broMissions) state.broMissions = []; // Neue Datenbank-Liste für aktive Missionen
+    
+    // Mission speichern
+    state.broMissions.push({
+        id: 'bro' + Date.now(),
+        shopItemId: item.id,
+        title: item.title,
+        costTotal: item.cost,
+        costPerChild: item.cost / 2,
+        currency: item.currency,
+        child1: activeChildId,
+        child2: partnerId,
+        isCompleted: false
+    });
+    
+    saveData();
+    closeBroMissionModal();
+    alert("Bro-Mission erfolgreich gestartet! Schaut auf die Team-Seite für euren Fortschritt.");
+}        
 function buy(t,c,currency) { 
     if(confirm(`Möchtest du "${t}" wirklich kaufen? (Konto Event bleibt unberührt)`)) { 
         if(!state.purchases) state.purchases = [];
@@ -2188,11 +2277,27 @@ function addShop() {
     const t = document.getElementById('newSTitle').value; 
     const c = document.getElementById('newSCost').value;
     const cur = document.getElementById('newSCurrency').value;
+    // NEU: Prüfen, ob der Haken bei Bro-Mission gesetzt ist
+    const isBro = document.getElementById('newSBroMission').checked;
+
     if(t && c) { 
         if(!state.shopItems) state.shopItems = [];
-        state.shopItems.push({id:'s'+Date.now(), title:t, cost:c, currency:cur}); 
+        
+        // NEU: Das "isBroMission" Etikett wird mit in der Datenbank gespeichert
+        state.shopItems.push({
+            id: 's' + Date.now(), 
+            title: t, 
+            cost: c, 
+            currency: cur, 
+            isBroMission: isBro 
+        }); 
+        
         saveData(); 
-        document.getElementById('newSTitle').value=''; document.getElementById('newSCost').value='';
+        
+        // Felder wieder leeren für die nächste Eingabe
+        document.getElementById('newSTitle').value = ''; 
+        document.getElementById('newSCost').value = '';
+        document.getElementById('newSBroMission').checked = false; // Haken wieder rausnehmen
     }
 }
 function delShop(id) { state.shopItems=state.shopItems.filter(x=>x.id!==id); saveData(); }
