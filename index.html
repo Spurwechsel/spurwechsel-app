@@ -1727,10 +1727,21 @@ function renderBroMissions() {
                 </div>
             </div>
 
-            ${bothDone ? `<button class="btn btn-p" style="background:var(--c-green); color:black; font-size:1.1rem; box-shadow: 3px 3px 0 #000;" onclick="redeemBroMission('${m.id}')">🎉 Mission erfüllt! Jetzt einlösen!</button>` : `<div style="text-align:center; font-size:0.9rem; color:#b45309; font-weight:bold;">Ihr braucht beide ${m.costPerChild} ${icon}</div>`}
+            <div style="display:flex; justify-content:space-between; margin-top:10px; gap: 10px;">
+                ${bothDone ? `<button class="btn btn-p" style="background:var(--c-green); color:black; font-size:1.1rem; box-shadow: 3px 3px 0 #000; flex:1;" onclick="redeemBroMission('${m.id}')">🎉 Mission erfüllt!</button>` : `<div style="text-align:center; font-size:0.9rem; color:#b45309; font-weight:bold; flex:1; display:flex; align-items:center; justify-content:center;">Ihr braucht beide ${m.costPerChild} ${icon}</div>`}
+                <button class="btn btn-ghost" style="width:auto; padding:10px; margin:0; color:red; border:2px solid red; background: white;" onclick="cancelBroMission('${m.id}')" title="Mission abbrechen">🗑️</button>
+            </div>
         </div>
         `;
     });
+}
+
+function cancelBroMission(mId) {
+    if(confirm("Möchtet ihr diese Bro-Mission wirklich abbrechen? Keine Sorge, eure gesparten Punkte bleiben euch erhalten!")) {
+        state.broMissions = state.broMissions.filter(x => x.id !== mId);
+        saveData();
+        updateUI();
+    }
 }
 
 function redeemBroMission(mId) {
@@ -1828,7 +1839,6 @@ function renderShop() {
             
             const safeTitle = (s.title || "").replace(/'/g, "\\'");
 
-            // NEU: Prüfen, ob für dieses Kind und dieses Item schon eine Mission läuft
             let activeMission = null;
             if(state.broMissions) {
                 activeMission = state.broMissions.find(m => 
@@ -1840,13 +1850,12 @@ function renderShop() {
 
             let broBtn = '';
             if (activeMission) {
-                // Wenn die Mission läuft, Partnernamen herausfinden und Hinweis anzeigen
                 const partnerId = activeMission.child1 === activeChildId ? activeMission.child2 : activeMission.child1;
                 const partner = state.children.find(c => c.id === partnerId);
                 const partnerName = partner ? partner.name : 'Bruder';
-                broBtn = `<div style="width:100%; padding:10px; margin:0; font-size:1rem; background: #fef3c7; color: #b45309; border: 2px dashed #b45309; border-radius: 8px; text-align: center; font-weight: bold;">⏳ Läuft zusammen mit ${partnerName}</div>`;
+                // Der Fix ist hier das box-sizing: border-box;
+                broBtn = `<div style="width:100%; padding:10px; margin:0; font-size:1rem; background: #fef3c7; color: #b45309; border: 2px dashed #b45309; border-radius: 8px; text-align: center; font-weight: bold; box-sizing: border-box;">⏳ Läuft zusammen mit ${partnerName}</div>`;
             } else if (s.isBroMission) {
-                // Wenn sie noch nicht läuft, den normalen Button anzeigen
                 broBtn = `<button class="btn btn-s" style="width:100%; padding:12px; margin:0; font-size:1.1rem; background: #f59e0b; color: white;" onclick="openBroMissionModal('${s.id}')">🤝 Bro-Mission starten</button>`;
             }
 
@@ -1902,10 +1911,17 @@ function startBroMission() {
     
     if(!partnerId) return alert("Bitte wähle einen Bruder aus!");
     
-    const item = state.shopItems.find(x => x.id === itemId);
-    if(!state.broMissions) state.broMissions = []; // Neue Datenbank-Liste für aktive Missionen
+    // NEU: Verhindert, dass man aus Versehen mehrfach klickt
+    if(!state.broMissions) state.broMissions = [];
+    const exists = state.broMissions.find(m => !m.isCompleted && m.shopItemId === itemId && ((m.child1 === activeChildId && m.child2 === partnerId) || (m.child1 === partnerId && m.child2 === activeChildId)));
+    if(exists) {
+        alert("Halt! Ihr habt diese Mission bereits gestartet!");
+        closeBroMissionModal();
+        return;
+    }
     
-    // Mission speichern
+    const item = state.shopItems.find(x => x.id === itemId);
+    
     state.broMissions.push({
         id: 'bro' + Date.now(),
         shopItemId: item.id,
@@ -1920,8 +1936,9 @@ function startBroMission() {
     
     saveData();
     closeBroMissionModal();
+    updateUI(); // Lädt die Oberfläche sofort neu
     alert("Bro-Mission erfolgreich gestartet! Schaut auf die Team-Seite für euren Fortschritt.");
-}        
+} 
 function buy(t,c,currency) { 
     if(confirm(`Möchtest du "${t}" wirklich kaufen? (Konto Event bleibt unberührt)`)) { 
         if(!state.purchases) state.purchases = [];
