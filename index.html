@@ -369,30 +369,11 @@
             <input type="checkbox" id="editCPause" style="width:auto; margin:0;"> 🏖️ Pausenmodus (Nur Ziele/Aufgaben pausieren)
         </label>
 
-<!-- BRO-MISSION MODAL -->
-<div id="broMissionModal" class="modal">
-    <div class="modal-content">
-        <h2>🤝 Bro-Mission starten</h2>
-        <p id="broMissionDesc" style="margin-bottom: 15px; font-size: 1.1rem;"></p>
-        <input type="hidden" id="broMissionItemId">
-        
-        <label style="display:block; margin-bottom:5px; font-weight:bold;">Mit wem möchtest du die Mission machen?</label>
-        <select id="broMissionPartner" style="width:100%; padding:10px; margin-bottom:20px; font-size:1.1rem; border-radius: 8px;">
-            <!-- Wird per JavaScript gefüllt -->
-        </select>
-        
-        <div style="display:flex; gap:10px;">
-            <button class="btn btn-p" onclick="startBroMission()">Mission starten!</button>
-            <button class="btn btn-ghost" onclick="closeBroMissionModal()">Abbrechen</button>
-        </div>
-    </div>
-</div>
         <!-- AVATAR UPLOAD & PIXAR GALERIE -->
         <div style="margin-top:20px; text-align:center; background:#f8fafc; padding:15px; border-radius:8px; border:2px solid #cbd5e1;">
             <p style="font-size:0.9rem; color:#475569; margin-top:0; margin-bottom:10px;"><b>Profilbild / Avatar</b></p>
             <img id="editAvatarPreview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; display:none; margin:0 auto 10px auto; border:3px solid #3b82f6; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             
-            <!-- Zwei zentrierte Buttons -->
             <div style="display:flex; justify-content:center; gap:10px; margin-bottom: 15px;">
                 <label style="background:#3b82f6; color:white; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold; margin:0;">
                     📸 Kamera
@@ -404,7 +385,6 @@
                 </label>
             </div>
 
-            <!-- Neue Pixar-Avatar-Galerie -->
             <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 15px 0;">
             <p style="font-size: 0.9em; font-weight: bold; margin-bottom: 10px; color:#0f172a;">Oder wähle einen Pixar-Avatar:</p>
             
@@ -419,14 +399,12 @@
             </div>
         </div>
         
-        <!-- Unter diesem </div> steht in deiner Datei dann der "Änderungen speichern" Button -->
-        <!-- Buttons ordentlich in einer eigenen Box anordnen -->
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:25px;">
             <button class="btn btn-p" style="margin:0; padding:12px; font-size:1.1rem;" onclick="saveEditChild()">Änderungen speichern</button>
             <button class="btn" style="margin:0; padding:12px; font-size:1.1rem; background:#cbd5e1; color:black; border:none;" onclick="document.getElementById('editChildModal').classList.remove('open')">Abbruch</button>
         </div>
-    </div> <!-- WICHTIG: Das schließt den weißen Fenster-Inhalt -->
-</div> <!-- WICHTIG: Das schließt das gesamte Modal -->
+    </div> 
+</div>
 
 <div id="editBehavModal" class="modal">
     <div class="modal-box">
@@ -820,7 +798,23 @@
         </div>
     </div>
 </div> 
-
+<!-- BRO-MISSION MODAL (jetzt richtig platziert!) -->
+<div id="broMissionModal" class="modal">
+    <div class="modal-box">
+        <h2>🤝 Bro-Mission starten</h2>
+        <p id="broMissionDesc" style="margin-bottom: 15px; font-size: 1.1rem;"></p>
+        <input type="hidden" id="broMissionItemId">
+        
+        <label style="display:block; margin-bottom:5px; font-weight:bold;">Mit wem möchtest du die Mission machen?</label>
+        <select id="broMissionPartner" style="width:100%; padding:10px; margin-bottom:20px; font-size:1.1rem; border-radius: 8px;">
+        </select>
+        
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <button class="btn btn-p" onclick="startBroMission()">Mission starten!</button>
+            <button class="btn btn-ghost" onclick="closeBroMissionModal()">Abbrechen</button>
+        </div>
+    </div>
+</div>
 <script>
 
 
@@ -1727,20 +1721,14 @@ function renderShop() {
             
             const safeTitle = (s.title || "").replace(/'/g, "\\'");
 
-            // NEU: Prüfen, ob es eine Bro-Mission ist. Wenn ja, bauen wir einen extra Button!
-            let broBtn = '';
-            if (s.isBroMission) {
-                // Gibt die ID des Shop-Artikels an das noch zu bauende Fenster weiter
-                broBtn = `<button class="btn btn-s" style="width:auto; padding:10px 15px; margin:0 10px 0 0; background: #f59e0b; color: white;" onclick="openBroMissionModal('${s.id}')">🤝 Bro-Mission</button>`;
-            }
-
             d.innerHTML += `
-            <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:15px; margin-bottom:10px; border-radius:15px;">
-                <div><b style="font-size:1.2rem;">${s.title}</b><br><span style="color:${col}; font-weight:800; font-size:1.1rem;">${s.cost} ${icon}</span></div>
-                <div style="display:flex; align-items:center;">
-                    ${broBtn}
-                    <button class="btn ${can?'btn-p':'btn-ghost'}" style="width:auto; padding:10px 20px; margin:0;" onclick="buy('${safeTitle}',${s.cost},'${s.currency}')" ${!can?'disabled':''}>Holen</button>
-                </div>
+            <div class="card" style="display:flex; flex-direction:column; gap:10px; padding:15px; margin-bottom:10px; border-radius:15px;">
+                <div style="font-size:1.3rem; font-weight:bold; text-align:center;">${s.title}</div>
+                <div style="color:${col}; font-weight:900; font-size:1.2rem; text-align:center; margin-bottom:5px;">${s.cost} ${icon}</div>
+                
+                <button class="btn ${can?'btn-p':'btn-ghost'}" style="width:100%; padding:12px; margin:0; font-size:1.1rem;" onclick="buy('${safeTitle}',${s.cost},'${s.currency}')" ${!can?'disabled':''}>Holen</button>
+                
+                ${s.isBroMission ? `<button class="btn btn-s" style="width:100%; padding:12px; margin:0; font-size:1.1rem; background: #f59e0b; color: white;" onclick="openBroMissionModal('${s.id}')">🤝 Bro-Mission</button>` : ''}
             </div>`;
         });
     }
@@ -2279,13 +2267,11 @@ function addShop() {
     const t = document.getElementById('newSTitle').value; 
     const c = document.getElementById('newSCost').value;
     const cur = document.getElementById('newSCurrency').value;
-    // NEU: Prüfen, ob der Haken bei Bro-Mission gesetzt ist
     const isBro = document.getElementById('newSBroMission').checked;
 
     if(t && c) { 
         if(!state.shopItems) state.shopItems = [];
         
-        // NEU: Das "isBroMission" Etikett wird mit in der Datenbank gespeichert
         state.shopItems.push({
             id: 's' + Date.now(), 
             title: t, 
@@ -2296,10 +2282,12 @@ function addShop() {
         
         saveData(); 
         
-        // Felder wieder leeren für die nächste Eingabe
         document.getElementById('newSTitle').value = ''; 
         document.getElementById('newSCost').value = '';
-        document.getElementById('newSBroMission').checked = false; // Haken wieder rausnehmen
+        document.getElementById('newSBroMission').checked = false;
+        
+        // NEU: Aktualisiert die Setup-Liste sofort, damit du weißt, dass es gespeichert wurde!
+        renderSettingsLists();
     }
 }
 function delShop(id) { state.shopItems=state.shopItems.filter(x=>x.id!==id); saveData(); }
