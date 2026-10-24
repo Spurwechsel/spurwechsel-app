@@ -555,13 +555,17 @@
         </div>
     </div>
     
-    <h3>Fortschritt im Team</h3>
+  <h3>Fortschritt im Team</h3>
     <p style="font-size:0.9rem; margin-bottom:15px;">Hier siehst du die Punkte, die sicher für das Gemeinschaftsevent gespart werden. Shop-Einkäufe ziehen hier nichts ab!</p>
     <div id="teamGrid"></div>
     
+    <!-- NEU: Der Container für die laufenden Bro-Missionen -->
+    <div id="broMissionSection" style="display:none; margin-top:30px;">
+        <h3 style="color:#f59e0b;">🤝 Aktive Bro-Missionen</h3>
+        <div id="broMissionList"></div>
+    </div>
 
-
-</div>
+</div> <!-- Das ist das schließende Div von viewSocial -->
 
 <div id="viewMoney" class="container hidden">
     <h2 style="color:var(--c-green)">💰 Mein Geld</h2>
@@ -1623,7 +1627,6 @@ function renderTeamGrid() {
         const pct = Math.min(100,(b.purpleEvent/t)*100);
         const done = b.purpleEvent >= t;
         
-       // --- DIE BILD-WEICHE FÜR DAS TEAM ---
         let avatarHtml = '';
         if (c.avatar && (c.avatar.startsWith('data:image') || c.avatar.includes('.png'))) {
             avatarHtml = `<img src="${c.avatar}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid black; margin-right:10px;">`;
@@ -1650,6 +1653,110 @@ function renderTeamGrid() {
     const opts = state.children.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
     document.getElementById('trFrom').innerHTML = opts;
     document.getElementById('trTo').innerHTML = opts;
+
+    // NEU: Nachdem das normale Team-Grid gezeichnet wurde, zeichnen wir die Bro-Missionen!
+    renderBroMissions();
+}
+
+function renderBroMissions() {
+    const section = document.getElementById('broMissionSection');
+    const list = document.getElementById('broMissionList');
+    if(!section || !list) return;
+
+    if(!state.broMissions || state.broMissions.filter(m => !m.isCompleted).length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+
+    section.style.display = 'block';
+    list.innerHTML = '';
+
+    state.broMissions.filter(m => !m.isCompleted).forEach(m => {
+        const c1 = state.children.find(x => x.id === m.child1);
+        const c2 = state.children.find(x => x.id === m.child2);
+        if(!c1 || !c2) return;
+
+        const bal1 = getBalances(c1.id);
+        const bal2 = getBalances(c2.id);
+
+        const current1 = m.currency === 'social' ? bal1.purpleShop : bal1.blue;
+        const current2 = m.currency === 'social' ? bal2.purpleShop : bal2.blue;
+
+        const pct1 = Math.min(100, (current1 / m.costPerChild) * 100);
+        const pct2 = Math.min(100, (current2 / m.costPerChild) * 100);
+        const done1 = current1 >= m.costPerChild;
+        const done2 = current2 >= m.costPerChild;
+        const bothDone = done1 && done2;
+
+        let icon = m.currency === 'social' ? '🟣' : '🔵';
+        
+        function getAvatar(c) {
+            if (c.avatar && (c.avatar.startsWith('data:image') || c.avatar.includes('.png'))) {
+                return `<img src="${c.avatar}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid black;">`;
+            }
+            return `<span style="font-size:2rem;">${c.avatar}</span>`;
+        }
+
+        list.innerHTML += `
+        <div class="card" style="border: 3px solid #f59e0b; background: #fffbeb;">
+            <div style="text-align:center; font-weight:bold; font-size:1.2rem; margin-bottom:15px;">${m.title}</div>
+            
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                ${getAvatar(c1)}
+                <div style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                        <span>${c1.name}</span>
+                        <span>${Math.min(current1, m.costPerChild)} / ${m.costPerChild} ${icon}</span>
+                    </div>
+                    <div style="height:20px; background:#fff; border:2px solid black; border-radius:10px; overflow:hidden;">
+                        <div style="height:100%; width:${pct1}%; background:${done1 ? 'var(--c-green)' : '#f59e0b'}; border-right:2px solid black;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+                ${getAvatar(c2)}
+                <div style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                        <span>${c2.name}</span>
+                        <span>${Math.min(current2, m.costPerChild)} / ${m.costPerChild} ${icon}</span>
+                    </div>
+                    <div style="height:20px; background:#fff; border:2px solid black; border-radius:10px; overflow:hidden;">
+                        <div style="height:100%; width:${pct2}%; background:${done2 ? 'var(--c-green)' : '#f59e0b'}; border-right:2px solid black;"></div>
+                    </div>
+                </div>
+            </div>
+
+            ${bothDone ? `<button class="btn btn-p" style="background:var(--c-green); color:black; font-size:1.1rem; box-shadow: 3px 3px 0 #000;" onclick="redeemBroMission('${m.id}')">🎉 Mission erfüllt! Jetzt einlösen!</button>` : `<div style="text-align:center; font-size:0.9rem; color:#b45309; font-weight:bold;">Ihr braucht beide ${m.costPerChild} ${icon}</div>`}
+        </div>
+        `;
+    });
+}
+
+function redeemBroMission(mId) {
+    const m = state.broMissions.find(x => x.id === mId);
+    if(!m) return;
+    
+    const bal1 = getBalances(m.child1);
+    const bal2 = getBalances(m.child2);
+    const curr1 = m.currency === 'social' ? bal1.purpleShop : bal1.blue;
+    const curr2 = m.currency === 'social' ? bal2.purpleShop : bal2.blue;
+    
+    if(curr1 < m.costPerChild || curr2 < m.costPerChild) {
+        return alert("Halt! Einer von euch hat nicht mehr genug Punkte im Geldbeutel!");
+    }
+    
+    if(!state.purchases) state.purchases = [];
+    const dateStr = getFDate(new Date());
+    
+    // Zieht beiden Jungs das Geld exakt ab und schreibt es in ihre Kaufhistorie
+    state.purchases.push({date: dateStr, childId: m.child1, title: m.title + ' (Bro-Mission Anteil)', cost: m.costPerChild, currency: m.currency});
+    state.purchases.push({date: dateStr, childId: m.child2, title: m.title + ' (Bro-Mission Anteil)', cost: m.costPerChild, currency: m.currency});
+    
+    m.isCompleted = true; // Mission abhaken
+    saveData();
+    updateUI();
+    alert("Mega! 🎉 Ihr habt die Bro-Mission erfolgreich eingelöst. Der Ausflug kann starten!");
 }
 
 function renderRestitutionUI() {
@@ -1721,14 +1828,36 @@ function renderShop() {
             
             const safeTitle = (s.title || "").replace(/'/g, "\\'");
 
+            // NEU: Prüfen, ob für dieses Kind und dieses Item schon eine Mission läuft
+            let activeMission = null;
+            if(state.broMissions) {
+                activeMission = state.broMissions.find(m => 
+                    !m.isCompleted && 
+                    m.shopItemId === s.id && 
+                    (m.child1 === activeChildId || m.child2 === activeChildId)
+                );
+            }
+
+            let broBtn = '';
+            if (activeMission) {
+                // Wenn die Mission läuft, Partnernamen herausfinden und Hinweis anzeigen
+                const partnerId = activeMission.child1 === activeChildId ? activeMission.child2 : activeMission.child1;
+                const partner = state.children.find(c => c.id === partnerId);
+                const partnerName = partner ? partner.name : 'Bruder';
+                broBtn = `<div style="width:100%; padding:10px; margin:0; font-size:1rem; background: #fef3c7; color: #b45309; border: 2px dashed #b45309; border-radius: 8px; text-align: center; font-weight: bold;">⏳ Läuft zusammen mit ${partnerName}</div>`;
+            } else if (s.isBroMission) {
+                // Wenn sie noch nicht läuft, den normalen Button anzeigen
+                broBtn = `<button class="btn btn-s" style="width:100%; padding:12px; margin:0; font-size:1.1rem; background: #f59e0b; color: white;" onclick="openBroMissionModal('${s.id}')">🤝 Bro-Mission starten</button>`;
+            }
+
             d.innerHTML += `
             <div class="card" style="display:flex; flex-direction:column; gap:10px; padding:15px; margin-bottom:10px; border-radius:15px;">
                 <div style="font-size:1.3rem; font-weight:bold; text-align:center;">${s.title}</div>
                 <div style="color:${col}; font-weight:900; font-size:1.2rem; text-align:center; margin-bottom:5px;">${s.cost} ${icon}</div>
                 
-                <button class="btn ${can?'btn-p':'btn-ghost'}" style="width:100%; padding:12px; margin:0; font-size:1.1rem;" onclick="buy('${safeTitle}',${s.cost},'${s.currency}')" ${!can?'disabled':''}>Holen</button>
+                <button class="btn ${can?'btn-p':'btn-ghost'}" style="width:100%; padding:12px; margin:0; font-size:1.1rem;" onclick="buy('${safeTitle}',${s.cost},'${s.currency}')" ${!can?'disabled':''}>Solo Holen</button>
                 
-                ${s.isBroMission ? `<button class="btn btn-s" style="width:100%; padding:12px; margin:0; font-size:1.1rem; background: #f59e0b; color: white;" onclick="openBroMissionModal('${s.id}')">🤝 Bro-Mission</button>` : ''}
+                ${broBtn}
             </div>`;
         });
     }
