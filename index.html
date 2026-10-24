@@ -1888,15 +1888,34 @@ function openBroMissionModal(shopItemId) {
     let icon = item.currency === 'social' ? '🟣 Sozial-Punkte' : '🔵 Aufgaben-Coins';
     document.getElementById('broMissionDesc').innerHTML = `Ziel: <b>${item.title}</b><br>Jeder spart: <b>${halfPrice} ${icon}</b>`;
     
-    // Dropdown mit Brüdern füllen (ohne das aktuell ausgewählte Kind)
+    // Dropdown mit Brüdern füllen
     const partnerSelect = document.getElementById('broMissionPartner');
     partnerSelect.innerHTML = '<option value="">-- Bruder auswählen --</option>';
     
     state.children.forEach(c => {
         if(c.id !== activeChildId) {
-            partnerSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+            
+            // NEU: Prüfen, ob der Bruder bereits an dieser speziellen Mission teilnimmt
+            let isAlreadyInThisMission = false;
+            if(state.broMissions) {
+                isAlreadyInThisMission = state.broMissions.some(m => 
+                    !m.isCompleted && 
+                    m.shopItemId === shopItemId && 
+                    (m.child1 === c.id || m.child2 === c.id)
+                );
+            }
+            
+            // Nur zur Liste hinzufügen, wenn er noch nicht an dieser Mission teilnimmt
+            if(!isAlreadyInThisMission) {
+                partnerSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+            }
         }
     });
+    
+    // Kleines Extra: Falls kein Bruder mehr übrig ist (weil alle schon an dieser Mission teilnehmen)
+    if(partnerSelect.options.length === 1) {
+        partnerSelect.innerHTML = '<option value="">-- Alle anderen sind schon verplant! --</option>';
+    }
     
     document.getElementById('broMissionModal').classList.add('open');
 }
