@@ -691,7 +691,7 @@
             </div>
             <label class="switch"><input type="checkbox" id="setAudioToggle" onchange="saveSettingsGeneral()"><span class="slider"></span></label>
         </div>
-    </div> <!-- Ende der gelben Karte "Allgemeine Funktionen" -->
+    </div>
     </div>
 
     <div class="card">
@@ -2685,7 +2685,6 @@ function handleAvatarUpload(event) {
     tempAvatarData = bildDateiname; 
 }
     function speakFeedback(points) {
-    // Prüfen, ob die Sprachausgabe im Setup aktiviert ist und der Browser es unterstützt
     if (!state.settings || !state.settings.audioEnabled) return;
     if (!window.speechSynthesis) return;
 
@@ -2697,19 +2696,37 @@ function handleAvatarUpload(event) {
     } else if (points === 4 || points === 8) {
         phrases = ["Mega! Jackpot geknackt!", "Absoluter Wahnsinn!", "Überragend!", "King-Modus aktiviert!", "Maschine!", "Epischer Win!", "Besser geht's nicht!"];
     } else {
-        return; // Bei 0 oder -1 Punkten bleibt die Stimme stumm
+        return; 
     }
 
-    // Einen zufälligen Spruch aus der Liste ziehen
     const phrase = phrases[Math.floor(Math.random() * phrases.length)];
-    
     const utterThis = new SpeechSynthesisUtterance(phrase);
-    utterThis.lang = 'de-DE';
-    utterThis.rate = 1.1; // Minimal schneller für mehr Energie
     
-    // Aktuelle Sprachausgabe abbrechen, falls schnell hintereinander geklickt wird
+    utterThis.lang = 'de-DE';
+    utterThis.rate = 1.05; // Minimal natürliches Tempo
+    utterThis.pitch = 1.1; // Minimal höhere Tonlage klingt motivierender und weniger roboterhaft
+
+    // Versuch, eine natürliche, hochwertige Stimme auf dem Gerät zu finden
+    let voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+        // Sucht nach guten Stimmen (Apple Siri, Google Deutsch etc.)
+        let bestVoice = voices.find(v => v.lang === 'de-DE' && (v.name.includes('Google') || v.name.includes('Premium') || v.name.includes('Siri')));
+        if (!bestVoice) bestVoice = voices.find(v => v.lang === 'de-DE'); // Fallback auf Standard-Deutsch
+        
+        if (bestVoice) {
+            utterThis.voice = bestVoice;
+        }
+    }
+
     window.speechSynthesis.cancel(); 
     window.speechSynthesis.speak(utterThis);
+}
+
+// Lade die Stimmen-Bibliothek des Geräts schon im Hintergrund vor
+if (window.speechSynthesis) {
+    window.speechSynthesis.onvoiceschanged = function() {
+        window.speechSynthesis.getVoices();
+    };
 }
 </script>
 </body>
