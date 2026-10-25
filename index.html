@@ -692,7 +692,7 @@
             <label class="switch"><input type="checkbox" id="setAudioToggle" onchange="saveSettingsGeneral()"><span class="slider"></span></label>
         </div>
     </div>
-    </div>
+    
 
     <div class="card">
         <h3>Sicherheit</h3>
@@ -2684,7 +2684,7 @@ function handleAvatarUpload(event) {
     // WICHTIG: Jetzt landet der Avatar im richtigen "Wartezimmer" für den Speicher-Button
     tempAvatarData = bildDateiname; 
 }
-    function speakFeedback(points) {
+   function speakFeedback(points) {
     if (!state.settings || !state.settings.audioEnabled) return;
     if (!window.speechSynthesis) return;
 
@@ -2703,19 +2703,26 @@ function handleAvatarUpload(event) {
     const utterThis = new SpeechSynthesisUtterance(phrase);
     
     utterThis.lang = 'de-DE';
-    utterThis.rate = 1.05; // Minimal natürliches Tempo
-    utterThis.pitch = 1.1; // Minimal höhere Tonlage klingt motivierender und weniger roboterhaft
+    utterThis.rate = 1.05; 
+    utterThis.pitch = 1.1; 
 
-    // Versuch, eine natürliche, hochwertige Stimme auf dem Gerät zu finden
+    // Die ultimative Stimmen-Suche: Filtert alle deutschen Stimmen heraus
     let voices = window.speechSynthesis.getVoices();
-    if (voices.length > 0) {
-        // Sucht nach guten Stimmen (Apple Siri, Google Deutsch etc.)
-        let bestVoice = voices.find(v => v.lang === 'de-DE' && (v.name.includes('Google') || v.name.includes('Premium') || v.name.includes('Siri')));
-        if (!bestVoice) bestVoice = voices.find(v => v.lang === 'de-DE'); // Fallback auf Standard-Deutsch
+    let germanVoices = voices.filter(v => v.lang.includes('de-') || v.lang.includes('de_'));
+    
+    if (germanVoices.length > 0) {
+        // Sucht gezielt nach den hochwertigen Stimmen von Apple, Google oder Windows
+        let bestVoice = germanVoices.find(v => 
+            v.name.includes('Siri') || 
+            v.name.includes('Google') || 
+            v.name.includes('Premium') ||
+            v.name.includes('Anna') || 
+            v.name.includes('Helena') ||
+            v.name.includes('Katja')
+        );
         
-        if (bestVoice) {
-            utterThis.voice = bestVoice;
-        }
+        // Nutzt die Premium-Stimme, falls gefunden, ansonsten die Standardstimme
+        utterThis.voice = bestVoice || germanVoices[0];
     }
 
     window.speechSynthesis.cancel(); 
