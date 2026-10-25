@@ -2685,55 +2685,25 @@ function handleAvatarUpload(event) {
     tempAvatarData = bildDateiname; 
 }
    function speakFeedback(points) {
+    // Prüft, ob der Ton im Setup aktiviert ist
     if (!state.settings || !state.settings.audioEnabled) return;
-    if (!window.speechSynthesis) return;
 
-    let phrases = [];
-    if (points === 1) {
-        phrases = ["Gut gemacht!", "Sauber!", "Weiter so!", "Ein Punkt für dich!", "Läuft bei dir!", "Check!", "Gute Arbeit!"];
-    } else if (points === 2) {
-        phrases = ["Starke Leistung!", "Super Job, Bro!", "Zwei Punkte im Sack!", "Klasse gemacht!", "Doppelte Power!", "Stark abgeliefert!", "Boom! Zwei Punkte!"];
+    let soundFile = '';
+
+    if (points === 1 || points === 2) {
+        // Würfelt eine Zahl von 1 bis 24
+        const randomZahl = Math.floor(Math.random() * 24) + 1;
+        soundFile = 'sound' + randomZahl + '.mp3'; 
     } else if (points === 4 || points === 8) {
-        phrases = ["Mega! Jackpot geknackt!", "Absoluter Wahnsinn!", "Überragend!", "King-Modus aktiviert!", "Maschine!", "Epischer Win!", "Besser geht's nicht!"];
+        // Der Jackpot-Sound (hier brauchst du eine Datei namens jackpot.mp3 im Ordner)
+        soundFile = 'jackpot.mp3'; 
     } else {
-        return; 
+        return; // Bei 0 Punkten bleibt es still
     }
 
-    const phrase = phrases[Math.floor(Math.random() * phrases.length)];
-    const utterThis = new SpeechSynthesisUtterance(phrase);
-    
-    utterThis.lang = 'de-DE';
-    utterThis.rate = 1.05; 
-    utterThis.pitch = 1.1; 
-
-    // Die ultimative Stimmen-Suche: Filtert alle deutschen Stimmen heraus
-    let voices = window.speechSynthesis.getVoices();
-    let germanVoices = voices.filter(v => v.lang.includes('de-') || v.lang.includes('de_'));
-    
-    if (germanVoices.length > 0) {
-        // Sucht gezielt nach den hochwertigen Stimmen von Apple, Google oder Windows
-        let bestVoice = germanVoices.find(v => 
-            v.name.includes('Siri') || 
-            v.name.includes('Google') || 
-            v.name.includes('Premium') ||
-            v.name.includes('Anna') || 
-            v.name.includes('Helena') ||
-            v.name.includes('Katja')
-        );
-        
-        // Nutzt die Premium-Stimme, falls gefunden, ansonsten die Standardstimme
-        utterThis.voice = bestVoice || germanVoices[0];
-    }
-
-    window.speechSynthesis.cancel(); 
-    window.speechSynthesis.speak(utterThis);
-}
-
-// Lade die Stimmen-Bibliothek des Geräts schon im Hintergrund vor
-if (window.speechSynthesis) {
-    window.speechSynthesis.onvoiceschanged = function() {
-        window.speechSynthesis.getVoices();
-    };
+    // Audio-Datei laden und abspielen
+    let audio = new Audio(soundFile);
+    audio.play().catch(e => console.log("Audio-Fehler:", e));
 }
 </script>
 </body>
