@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#FF00CC">
     <title>Spurwechsel Pro</title>
-    <!-- VERSION 60 -->
+    <!-- VERSION 61 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path d=%22M50 5 L90 25 L90 60 C90 80 50 95 50 95 C50 95 10 80 10 60 L10 25 Z%22 fill=%22%23ff0055%22 stroke=%22%23000%22 stroke-width=%225%22/><text x=%2250%22 y=%2270%22 font-family=%22sans-serif%22 font-size=%2255%22 font-weight=%22900%22 fill=%22%23ffee00%22 text-anchor=%22middle%22 stroke=%22%23000%22 stroke-width=%222%22>S</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -295,7 +295,7 @@
 
 <div id="loginOverlay">
     <div class="card" style="width: 100%; max-width: 400px; transform: rotate(0deg); text-align:center;">
-        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v60</span></div>
+        <div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v61</span></div>
         <h3 style="margin-bottom:20px; font-family:'Fredoka'; font-weight:700;">Sicherer Cloud-Login</h3>
         <input type="email" id="loginEmail" placeholder="Familien E-Mail (z.B. familie@...)">
         <input type="password" id="loginPass" placeholder="Passwort">
@@ -316,7 +316,7 @@
         <div class="score-row" style="color:var(--c-purple)"><span id="headScorePurple">0</span> 🟣</div>
     </div>
 </div>
-2<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v60</span></div></div>
+2<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v61</span></div></div>
 
 <div class="nav-sidebar no-print">
     <div class="nav-btn active" onclick="nav('viewTracker', this)"><span class="nav-icon">📝</span><span class="nav-text">Plan</span></div>
@@ -682,6 +682,16 @@
             </div>
             <label class="switch"><input type="checkbox" id="setGoalToggle" onchange="saveSettingsGeneral()"><span class="slider"></span></label>
         </div>
+        
+        <!-- NEU: Schalter für Sprachausgabe -->
+        <div class="setting-row">
+            <div>
+                <b>🗣️ Sprachausgabe (Feedback)</b><br>
+                <span style="font-size:0.8rem; color:#444;">Lobt beim Punkte vergeben.</span>
+            </div>
+            <label class="switch"><input type="checkbox" id="setAudioToggle" onchange="saveSettingsGeneral()"><span class="slider"></span></label>
+        </div>
+    </div> <!-- Ende der gelben Karte "Allgemeine Funktionen" -->
     </div>
 
     <div class="card">
@@ -1518,6 +1528,11 @@ function setPoint(bId, val) {
     applyTeamSync(dStr);
     saveData(); 
     updateUI(); 
+
+    // NEU: Lob per Sprachausgabe (nur bei Punkten größer als 0)
+    if (val > 0) {
+        speakFeedback(val);
+    }
 }
 
 function openMoneyModal() { toggleMoneyInputs(); document.getElementById('moneyModal').classList.add('open'); }
@@ -2101,6 +2116,8 @@ function renderSettingsLists() {
     document.getElementById('setExToggle').checked = state.settings.exEnabled;
     document.getElementById('setExRate').value = state.settings.exRate;
     document.getElementById('setGoalToggle').checked = state.settings.goalEnabled;
+    // NEU: Audio-Schalter beim Laden richtig setzen
+    document.getElementById('setAudioToggle').checked = state.settings.audioEnabled || false;
     
     const cOpts = state.children ? state.children.map(c=>`<option value="${c.id}">${c.name}</option>`).join('') : '';
     document.getElementById('goalChildSelect').innerHTML = cOpts;
@@ -2478,6 +2495,8 @@ function saveSettingsGeneral() {
     state.settings.exEnabled = document.getElementById('setExToggle').checked;
     state.settings.exRate = document.getElementById('setExRate').value;
     state.settings.goalEnabled = document.getElementById('setGoalToggle').checked;
+    // NEU: Audio-Einstellung speichern
+    state.settings.audioEnabled = document.getElementById('setAudioToggle').checked;
     saveData(); 
 }
 
@@ -2664,6 +2683,33 @@ function handleAvatarUpload(event) {
     
     // WICHTIG: Jetzt landet der Avatar im richtigen "Wartezimmer" für den Speicher-Button
     tempAvatarData = bildDateiname; 
+}
+    function speakFeedback(points) {
+    // Prüfen, ob die Sprachausgabe im Setup aktiviert ist und der Browser es unterstützt
+    if (!state.settings || !state.settings.audioEnabled) return;
+    if (!window.speechSynthesis) return;
+
+    let phrases = [];
+    if (points === 1) {
+        phrases = ["Gut gemacht!", "Sauber!", "Weiter so!", "Ein Punkt für dich!", "Läuft bei dir!", "Check!", "Gute Arbeit!"];
+    } else if (points === 2) {
+        phrases = ["Starke Leistung!", "Super Job, Bro!", "Zwei Punkte im Sack!", "Klasse gemacht!", "Doppelte Power!", "Stark abgeliefert!", "Boom! Zwei Punkte!"];
+    } else if (points === 4 || points === 8) {
+        phrases = ["Mega! Jackpot geknackt!", "Absoluter Wahnsinn!", "Überragend!", "King-Modus aktiviert!", "Maschine!", "Epischer Win!", "Besser geht's nicht!"];
+    } else {
+        return; // Bei 0 oder -1 Punkten bleibt die Stimme stumm
+    }
+
+    // Einen zufälligen Spruch aus der Liste ziehen
+    const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+    
+    const utterThis = new SpeechSynthesisUtterance(phrase);
+    utterThis.lang = 'de-DE';
+    utterThis.rate = 1.1; // Minimal schneller für mehr Energie
+    
+    // Aktuelle Sprachausgabe abbrechen, falls schnell hintereinander geklickt wird
+    window.speechSynthesis.cancel(); 
+    window.speechSynthesis.speak(utterThis);
 }
 </script>
 </body>
