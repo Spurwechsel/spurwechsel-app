@@ -316,7 +316,7 @@
         <div class="score-row" style="color:var(--c-purple)"><span id="headScorePurple">0</span> 🟣</div>
     </div>
 </div>
-2<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v61</span></div></div>
+<div class="brand-logo"><div class="brand-text">SPURWECHSEL <span style="font-size:0.8rem; color:#00e676;">v61</span></div></div>
 
 <div class="nav-sidebar no-print">
     <div class="nav-btn active" onclick="nav('viewTracker', this)"><span class="nav-icon">📝</span><span class="nav-text">Plan</span></div>
@@ -326,7 +326,7 @@
     <div class="nav-btn" onclick="nav('viewMoney', this)"><span class="nav-icon">💰</span><span class="nav-text">Geld</span></div>
     <div class="nav-btn" onclick="nav('viewStats', this)"><span class="nav-icon">📊</span><span class="nav-text">Stats</span></div>
     
-    <!-- NEU: Link zum Essensplan (Subdomain) -->
+    <!-- Link zum Essensplan (Subdomain) -->
     <div class="nav-btn" style="border: 3px solid #0044ff;" onclick="window.location.href='https://essen.spurwechsel.team'">
         <span class="nav-icon">🍽️</span><span class="nav-text">Essen</span>
     </div>
@@ -516,8 +516,6 @@
         <div id="listSocial"></div>
     </div>
 
-
-
     <!-- WIEDERGUTMACHUNG START -->
     <div class="card" id="restitutionCard" style="margin-top:25px; border: 2px solid #9d00ff; background:#f5f3ff;">
         <h3 style="color:#6d28d9;">⚖️ Wiedergutmachung (Event-Punkte)</h3>
@@ -534,6 +532,7 @@
     <!-- WIEDERGUTMACHUNG ENDE -->
 
 </div>
+
 <div id="viewOverview" class="container hidden">
     <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
         <div>
@@ -561,17 +560,17 @@
         </div>
     </div>
     
-  <h3>Fortschritt im Team</h3>
+    <h3>Fortschritt im Team</h3>
     <p style="font-size:0.9rem; margin-bottom:15px;">Hier siehst du die Punkte, die sicher für das Gemeinschaftsevent gespart werden. Shop-Einkäufe ziehen hier nichts ab!</p>
     <div id="teamGrid"></div>
     
-    <!-- NEU: Der Container für die laufenden Bro-Missionen -->
+    <!-- Der Container für die laufenden Bro-Missionen -->
     <div id="broMissionSection" style="display:none; margin-top:30px;">
         <h3 style="color:#f59e0b;">🤝 Aktive Bro-Missionen</h3>
         <div id="broMissionList"></div>
     </div>
 
-</div> <!-- Das ist das schließende Div von viewSocial -->
+</div>
 
 <div id="viewMoney" class="container hidden">
     <h2 style="color:var(--c-green)">💰 Mein Geld</h2>
@@ -642,7 +641,7 @@
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
             <label style="font-weight:bold;">Ziele Filtern:</label>
-            <button class="btn btn-ghost" style="width:auto; padding:5px 10px; font-size:0.8rem; margin:0; border:2px solid #000;"onclick="selectAllStats()">Alle anwählen</button>
+            <button class="btn btn-ghost" style="width:auto; padding:5px 10px; font-size:0.8rem; margin:0; border:2px solid #000;" onclick="selectAllStats()">Alle anwählen</button>
         </div>
         <div id="statFilters" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
         <button class="btn btn-p" onclick="drawStats()" style="margin-top:15px;">Grafik Zeichnen</button>
@@ -689,7 +688,7 @@
             <label class="switch"><input type="checkbox" id="setGoalToggle" onchange="saveSettingsGeneral()"><span class="slider"></span></label>
         </div>
         
-        <!-- NEU: Schalter für Sprachausgabe -->
+        <!-- Schalter für Sprachausgabe -->
         <div class="setting-row">
             <div>
                 <b>🗣️ Sprachausgabe (Feedback)</b><br>
@@ -699,7 +698,6 @@
         </div>
     </div>
     
-
     <div class="card">
         <h3>Sicherheit</h3>
         <label style="font-weight:bold;">Eltern-PIN ändern:</label>
@@ -710,27 +708,24 @@
         <button class="btn btn-d" style="width:100%; border:2px solid #000;" onclick="doLogout()">🚪 Von der App abmelden</button>
     </div>
 
-    <div class="card">
-        
     <div class="card" style="background:#e0f2fe; margin-bottom:20px;">
         <h3>💾 Backup & Wiederherstellung</h3>
         <button class="btn btn-p" style="margin-bottom:10px; width:100%;" onclick="createBackup()">Manuelles Backup erstellen</button>
         <button class="btn btn-d" style="background:#475569; width:100%; border:none; color:white;" onclick="restoreBackup()">Letztes Backup laden</button>
     </div>
 
-       <h3>Kinder verwalten</h3>
+    <div class="card">
+        <h3>Kinder verwalten</h3>
         <div id="setChildList"></div>
         <div style="background:#f0f9ff; padding:15px; border:2px dashed #000; border-radius:15px; margin-top:20px;">
             <h4 style="margin-top:0;">Neues Kind anlegen</h4>
             <input type="text" id="newCName" placeholder="Name">
             <label style="font-weight:bold; font-size:0.9rem;">Avatar wählen:</label>
             
-            <!-- Neuer, robuster Button zum Ein- und Ausblenden -->
             <button type="button" class="btn" style="width:100%; padding:10px; background:#f8fafc; border:2px solid #e2e8f0; border-radius:8px; font-weight:bold; cursor:pointer; margin-bottom:10px; color:#000;" onclick="const w = document.getElementById('iconWrapper'); w.style.display = w.style.display === 'none' ? 'block' : 'none';">
                 🎨 Standard-Icons ein-/ausblenden
             </button>
             
-            <!-- Der Container, der das Grid versteckt -->
             <div id="iconWrapper" style="display: none; padding-top: 10px;">
                 <div id="avatarGrid" class="avatar-grid"></div>
             </div>
@@ -758,7 +753,8 @@
             <button class="btn btn-m" onclick="setGoal()">Ziel festlegen / überschreiben</button>
         </div>
     </div>
-<!-- KORREKTUR START -->
+
+    <!-- KORREKTUR START -->
     <div class="card" style="background:#f8fafc; border:2px dashed #64748b;">
         <h3 style="color:#334155;">🎛️ Taschengeld Korrektur (Manuell)</h3>
         <p style="font-size:0.9rem; color:#475569;">Stimmt der Kontostand nicht? Hier kannst du das Geld direkt überschreiben (ohne Buchung in der Historie).</p>
@@ -776,6 +772,7 @@
         <button class="btn" style="background:#f59e0b; color:black; margin-top:10px; border:2px solid #000; font-weight:bold;" onclick="saveCorrectionBalances()">Neuen Kontostand speichern</button>
     </div>
     <!-- KORREKTUR ENDE -->
+
     <div class="card">
         <h3>Gemeinschafts-Event</h3>
         <label>Titel des Events:</label><input type="text" id="setEvtTitle">
@@ -802,7 +799,7 @@
         </div>
     </div>
 
-  <div class="card">
+    <div class="card">
         <h3>Belohnungen (Shop)</h3>
         <div id="setShopList"></div>
         <div style="margin-top:15px; border-top:2px dashed #000; padding-top:15px;">
@@ -815,16 +812,16 @@
                 </select>
             </div>
             
-            <!-- NEU: Checkbox für Bro-Mission -->
             <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
                 <input type="checkbox" id="newSBroMission" style="width: 24px; height: 24px; cursor: pointer;">
                 <label for="newSBroMission" style="font-size: 1.1rem; cursor: pointer;">Als <b>Bro-Mission</b> (50/50) erlauben</label>
             </div>
-<button class="btn btn-p" onclick="addShop()">In Shop stellen</button>
+            <button id="shopSubmitBtn" class="btn btn-p" onclick="addShop()">In Shop stellen</button>
         </div>
     </div>
 </div> 
-<!-- BRO-MISSION MODAL (jetzt richtig platziert!) -->
+
+<!-- BRO-MISSION MODAL -->
 <div id="broMissionModal" class="modal">
     <div class="modal-box">
         <h2>🤝 Bro-Mission starten</h2>
@@ -841,9 +838,8 @@
         </div>
     </div>
 </div>
+
 <script>
-
-
 const firebaseConfig = {
   apiKey: "AIzaSyDe3D4X2N_-rPc7mVSHNvo894J0s0retWo",
   authDomain: "spurwechsel-7833e.firebaseapp.com",
@@ -909,20 +905,8 @@ function doLogout() {
     if(confirm('Möchtest du dich wirklich abmelden?')) auth.signOut();
 }
 
-// Fallback für den Fall, dass Firebase tot ist
-function startAppFallback() {
-    const localData = localStorage.getItem('spurwechsel_v33') || localStorage.getItem('spurwechsel_v32'); 
-    if (localData) {
-        try { state = JSON.parse(localData); } catch(e) { seedData(); }
-    } else {
-        seedData();
-    }
-    processDataAndStart();
-}
-
 function startApp() {
     db.ref('spurwechsel_data').on('value', (snapshot) => {
-        
         const cloudData = snapshot.val();
         if (cloudData) {
             state = cloudData;
@@ -1038,7 +1022,6 @@ function seedData() {
         {id:'b2', title:'Verhalten untereinander', type:'social', assignedTo:null, hasJackpot: true}
     ];
     state.shopItems = [{id:'s1', title:'1 Std. Medienzeit', cost:10, currency:'general'}];
-    // Removed automatic saveData() here to prevent accidental overwrites
 }
 
 function getFDate(d) {
@@ -1199,7 +1182,6 @@ function getBalances(cId) {
     if(state.transfers) {
         state.transfers.forEach(t => {
             if(t.from === cId) {
-                // NUR Event-Punkte abziehen, Shop (Taschengeld) bleibt unberuehrt
                 if(t.date > lastReset) purpleEvent -= t.amount;
             }
             if(t.to === cId) {
@@ -1290,16 +1272,12 @@ function updateUI() {
     const bal = getBalances(c.id);
     const lvl = calcLevel(bal.lifetime);
 
-    // --- NEUE BILD-WEICHE FÜR DEN KOPFBEREICH ---
     const headAvatar = document.getElementById('headAvatar');
     if (c.avatar && (c.avatar.startsWith('data:image') || c.avatar.includes('.png'))) {
-        // Macht ein wunderschönes, rundes Bild mit weißem Rand in den blauen Balken
         headAvatar.innerHTML = `<img src="${c.avatar}" style="width:50px; height:50px; min-width:50px; min-height:50px; flex-shrink:0; display:block; border-radius:50%; object-fit:cover; border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.2); vertical-align:middle;">`;
     } else {
-        // Zeigt das Emoji an, falls kein Foto vorhanden ist
         headAvatar.innerHTML = c.avatar;
     }
-    // -------------------------------------------
 
     document.getElementById('headName').innerText = c.name;
     document.getElementById('headScoreBlue').innerText = bal.blue;
@@ -1429,7 +1407,6 @@ function renderOverview() {
         const bal = getBalances(c.id);
         const lvl = calcLevel(bal.lifetime);
 
-        // --- DIE BILD-WEICHE FÜR DIE ÜBERSICHT ---
         let avatarHtml = '';
         if (c.avatar && (c.avatar.startsWith('data:image') || c.avatar.includes('.png'))) {
             avatarHtml = `<img src="${c.avatar}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid black;">`;
@@ -1535,7 +1512,6 @@ function setPoint(bId, val) {
     saveData(); 
     updateUI(); 
 
-    // NEU: Lob per Sprachausgabe (nur bei Punkten größer als 0)
     if (val > 0) {
         speakFeedback(val);
     }
@@ -1681,7 +1657,6 @@ function renderTeamGrid() {
     document.getElementById('trFrom').innerHTML = opts;
     document.getElementById('trTo').innerHTML = opts;
 
-    // NEU: Nachdem das normale Team-Grid gezeichnet wurde, zeichnen wir die Bro-Missionen!
     renderBroMissions();
 }
 
@@ -1787,11 +1762,10 @@ function redeemBroMission(mId) {
     if(!state.purchases) state.purchases = [];
     const dateStr = getFDate(new Date());
     
-    // Zieht beiden Jungs das Geld exakt ab und schreibt es in ihre Kaufhistorie
     state.purchases.push({date: dateStr, childId: m.child1, title: m.title + ' (Bro-Mission Anteil)', cost: m.costPerChild, currency: m.currency});
     state.purchases.push({date: dateStr, childId: m.child2, title: m.title + ' (Bro-Mission Anteil)', cost: m.costPerChild, currency: m.currency});
     
-    m.isCompleted = true; // Mission abhaken
+    m.isCompleted = true;
     saveData();
     updateUI();
     alert("Mega! 🎉 Ihr habt die Bro-Mission erfolgreich eingelöst. Der Ausflug kann starten!");
@@ -1880,7 +1854,6 @@ function renderShop() {
                 const partnerId = activeMission.child1 === activeChildId ? activeMission.child2 : activeMission.child1;
                 const partner = state.children.find(c => c.id === partnerId);
                 const partnerName = partner ? partner.name : 'Bruder';
-                // Der Fix ist hier das box-sizing: border-box;
                 broBtn = `<div style="width:100%; padding:10px; margin:0; font-size:1rem; background: #fef3c7; color: #b45309; border: 2px dashed #b45309; border-radius: 8px; text-align: center; font-weight: bold; box-sizing: border-box;">⏳ Läuft zusammen mit ${partnerName}</div>`;
             } else if (s.isBroMission) {
                 broBtn = `<button class="btn btn-s" style="width:100%; padding:12px; margin:0; font-size:1.1rem; background: #f59e0b; color: white;" onclick="openBroMissionModal('${s.id}')">🤝 Bro-Mission starten</button>`;
@@ -1904,25 +1877,22 @@ function renderShop() {
         }).join('');
     }
 }
+
 function openBroMissionModal(shopItemId) {
     const item = state.shopItems.find(x => x.id === shopItemId);
     if(!item) return;
     
     document.getElementById('broMissionItemId').value = item.id;
     
-    // Beschreibung und Halber Preis berechnen
     const halfPrice = item.cost / 2;
     let icon = item.currency === 'social' ? '🟣 Sozial-Punkte' : '🔵 Aufgaben-Coins';
     document.getElementById('broMissionDesc').innerHTML = `Ziel: <b>${item.title}</b><br>Jeder spart: <b>${halfPrice} ${icon}</b>`;
     
-    // Dropdown mit Brüdern füllen
     const partnerSelect = document.getElementById('broMissionPartner');
     partnerSelect.innerHTML = '<option value="">-- Bruder auswählen --</option>';
     
     state.children.forEach(c => {
         if(c.id !== activeChildId) {
-            
-            // NEU: Prüfen, ob der Bruder bereits an dieser speziellen Mission teilnimmt
             let isAlreadyInThisMission = false;
             if(state.broMissions) {
                 isAlreadyInThisMission = state.broMissions.some(m => 
@@ -1932,14 +1902,12 @@ function openBroMissionModal(shopItemId) {
                 );
             }
             
-            // Nur zur Liste hinzufügen, wenn er noch nicht an dieser Mission teilnimmt
             if(!isAlreadyInThisMission) {
                 partnerSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
             }
         }
     });
     
-    // Kleines Extra: Falls kein Bruder mehr übrig ist (weil alle schon an dieser Mission teilnehmen)
     if(partnerSelect.options.length === 1) {
         partnerSelect.innerHTML = '<option value="">-- Alle anderen sind schon verplant! --</option>';
     }
@@ -1957,7 +1925,6 @@ function startBroMission() {
     
     if(!partnerId) return alert("Bitte wähle einen Bruder aus!");
     
-    // NEU: Verhindert, dass man aus Versehen mehrfach klickt
     if(!state.broMissions) state.broMissions = [];
     const exists = state.broMissions.find(m => !m.isCompleted && m.shopItemId === itemId && ((m.child1 === activeChildId && m.child2 === partnerId) || (m.child1 === partnerId && m.child2 === activeChildId)));
     if(exists) {
@@ -1982,9 +1949,10 @@ function startBroMission() {
     
     saveData();
     closeBroMissionModal();
-    updateUI(); // Lädt die Oberfläche sofort neu
+    updateUI(); 
     alert("Bro-Mission erfolgreich gestartet! Schaut auf die Team-Seite für euren Fortschritt.");
 } 
+
 function buy(t,c,currency) { 
     if(confirm(`Möchtest du "${t}" wirklich kaufen? (Konto Event bleibt unberührt)`)) { 
         if(!state.purchases) state.purchases = [];
@@ -2122,7 +2090,6 @@ function renderSettingsLists() {
     document.getElementById('setExToggle').checked = state.settings.exEnabled;
     document.getElementById('setExRate').value = state.settings.exRate;
     document.getElementById('setGoalToggle').checked = state.settings.goalEnabled;
-    // NEU: Audio-Schalter beim Laden richtig setzen
     document.getElementById('setAudioToggle').checked = state.settings.audioEnabled || false;
     
     const cOpts = state.children ? state.children.map(c=>`<option value="${c.id}">${c.name}</option>`).join('') : '';
@@ -2134,7 +2101,6 @@ function renderSettingsLists() {
     
     if(state.children) {
        document.getElementById('setChildList').innerHTML = state.children.map(c => {
-        // Prüfen ob echtes Foto, Pixar-Avatar oder Emoji
         let avatarHtml = '';
         if (c.avatar && (c.avatar.startsWith('data:image') || c.avatar.includes('.png'))) {
             avatarHtml = `<img src="${c.avatar}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid #3b82f6;">`;
@@ -2156,7 +2122,7 @@ function renderSettingsLists() {
                 <button class="btn btn-d" style="flex:1; margin:0; padding:12px; font-size:1.2rem;" onclick="delChild('${c.id}')">🗑</button>
             </div>
             
-            ${(c.bans||[]).map(b=>`
+             ${(c.bans||[]).map(b=>`
             <div style="background:#fecaca; border:2px solid #000; padding:5px; margin-top:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
                 <b>${b.title}</b> <small>(bis${formatDateDE(b.end)})</small>
                 <div style="display:flex; gap:5px;">
@@ -2315,16 +2281,15 @@ function openEditChild(id) {
     document.getElementById('editCPause').checked = !!c.isPaused;
     
     editSelectedAvatar = c.avatar;
-    tempAvatarData = null; // WICHTIG: Leert das Wartezimmer, damit kein altes Foto hängenbleibt
+    tempAvatarData = null;
 
- // --- BILD-VORSCHAU LADEN ---
     const preview = document.getElementById('editAvatarPreview');
     if (c.avatar && (c.avatar.startsWith('data:image') || c.avatar.includes('.png'))) {
         preview.src = c.avatar;
-        preview.style.display = 'block'; // Zeigt das Foto oder den Pixar-Avatar im Kreis an
+        preview.style.display = 'block';
     } else {
         preview.src = '';
-        preview.style.display = 'none';  // Versteckt den Kreis, wenn kein Bild da ist
+        preview.style.display = 'none'; 
     }
 
     document.getElementById('editChildModal').classList.add('open');
@@ -2340,10 +2305,9 @@ function saveEditChild() {
     const c = state.children.find(x => x.id === id);
     c.name = n;
     
-    // --- BILD SPEICHERN ---
     if (tempAvatarData) {
-        c.avatar = tempAvatarData; // Speichert das Kamera-Foto ODER den Pixar-Avatar
-        tempAvatarData = null;     // Leert das Wartezimmer für das nächste Kind
+        c.avatar = tempAvatarData; 
+        tempAvatarData = null;     
     }
     
     if(!c.money) c.money = {cash:0, savings:0, history:[], lastPaidWeek: getIsoWeek(new Date()), lastPaidMonth: getIsoMonth(new Date())};
@@ -2354,7 +2318,6 @@ function saveEditChild() {
     saveData(); 
     document.getElementById('editChildModal').classList.remove('open');
     
-    // Zwingt die App, die Liste und den blauen Balken sofort neu zu zeichnen!
     if(typeof updateSetup === 'function') updateSetup();
     if(typeof updateUI === 'function') updateUI();
 }
@@ -2463,43 +2426,49 @@ function addShop() {
     const cur = document.getElementById('newSCurrency').value;
     const isBro = document.getElementById('newSBroMission').checked;
 
-    if(t && c) { 
-        if(!state.shopItems) state.shopItems = [];
-        
-        state.shopItems.push({
-            id: 's' + Date.now(), 
-            title: t, 
-            cost: c, 
-            currency: cur, 
-            isBroMission: isBro 
-        }); 
-        
-        saveData(); 
-        
-        document.getElementById('newSTitle').value = ''; 
-        document.getElementById('newSCost').value = '';
-        document.getElementById('newSBroMission').checked = false;
-        
-        // Aktualisiert die Setup-Liste sofort
-        renderSettingsLists();
+    if(!t || !c) {
+        alert("Bitte Titel und Kosten eingeben!");
+        return;
+    }
 
-        // --- NEU: Visuelles & akustisches Feedback ---
+    if(!state.shopItems) state.shopItems = [];
+    
+    state.shopItems.push({
+        id: 's' + Date.now(), 
+        title: t, 
+        cost: c, 
+        currency: cur, 
+        isBroMission: isBro 
+    }); 
+    
+    saveData(); 
+    
+    document.getElementById('newSTitle').value = ''; 
+    document.getElementById('newSCost').value = '';
+    document.getElementById('newSBroMission').checked = false;
+    
+    renderSettingsLists();
+
+    try {
         let audio = new Audio('sound1.mp3');
-        audio.play().catch(e => console.log("Audio-Fehler:", e));
+        audio.play().catch(e => console.log("Audio-Hinweis:", e));
+    } catch(err) {
+        console.log("Audio konnte nicht abgespielt werden");
+    }
 
-        const btn = document.querySelector('.btn.btn-p');
-        if (btn) {
-            const originalText = btn.innerText;
-            btn.innerText = "✅ In den Shop gestellt!";
-            btn.style.backgroundColor = "#28a745";
-            
-            setTimeout(() => {
-                btn.innerText = originalText;
-                btn.style.backgroundColor = "";
-            }, 2000);
-        }
+    const btn = document.getElementById('shopSubmitBtn');
+    if (btn) {
+        const originalText = btn.innerText;
+        btn.innerText = "✅ In den Shop gestellt!";
+        btn.style.backgroundColor = "#28a745";
+        
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.style.backgroundColor = "";
+        }, 2000);
     }
 }
+
 function delShop(id) { state.shopItems=state.shopItems.filter(x=>x.id!==id); saveData(); }
 
 function saveEvent() {
@@ -2517,21 +2486,9 @@ function saveSettingsGeneral() {
     state.settings.exEnabled = document.getElementById('setExToggle').checked;
     state.settings.exRate = document.getElementById('setExRate').value;
     state.settings.goalEnabled = document.getElementById('setGoalToggle').checked;
-    // NEU: Audio-Einstellung speichern
     state.settings.audioEnabled = document.getElementById('setAudioToggle').checked;
     saveData(); 
 }
-
-
-function createBackup() {
-    if (!db) return alert("Keine Datenbankverbindung.");
-    const backupData = JSON.parse(JSON.stringify(state));
-    backupData.timestamp = new Date().toISOString();
-    db.ref('backups/' + Date.now()).set(backupData)
-      .then(() => alert("Backup erfolgreich in der Cloud (Firebase) gesichert!"))
-      .catch(e => alert("Backup Fehler: " + e));
-}
-
 
 function createBackup() {
     if (!db) return alert("Keine Datenbankverbindung.");
@@ -2558,14 +2515,12 @@ function restoreBackup() {
 function checkAutoBackup() {
     const lastBackupStr = localStorage.getItem('spurwechsel_last_backup');
     const now = Date.now();
-    // 24 Stunden Check
     if (!lastBackupStr || (now - parseInt(lastBackupStr) > 86400000)) {
         if (db) {
             const backupData = JSON.parse(JSON.stringify(state));
             backupData.timestamp = new Date().toISOString();
             db.ref('backups/latest').set(backupData);
             localStorage.setItem('spurwechsel_last_backup', now.toString());
-            console.log("Auto-Backup erstellt.");
         }
     }
 }
@@ -2576,7 +2531,6 @@ function saveData() {
     });
 }
 
-// --- DEIN NAVIGATIONS-MOTOR (Wiederhergestellt) ---
 function nav(v, b) {
     document.querySelectorAll('.container').forEach(e=>e.classList.add('hidden'));
     document.getElementById(v).classList.remove('hidden');
@@ -2600,12 +2554,10 @@ function checkPin() {
     }
 }
 
-// --- DEIN DROPDOWN-MENÜ (Mit Anti-Oval-Schutz) ---
 function openChildModal() { 
     document.getElementById('childListModal').innerHTML = state.children.map(c => {
         let avatarHtml = '';
         if (c.avatar && (c.avatar.startsWith('data:image') || c.avatar.includes('.png'))) {
-            // min-width und flex-shrink:0 zwingen das Bild, perfekt rund zu bleiben!
             avatarHtml = `<img src="${c.avatar}" style="width:50px; height:50px; min-width:50px; flex-shrink:0; border-radius:50%; object-fit:cover; border:2px solid #3b82f6;">`;
         } else {
             avatarHtml = `<span style="font-size:2.5rem">${c.avatar}</span>`;
@@ -2619,6 +2571,7 @@ function openChildModal() {
     
     document.getElementById('childModal').classList.add('open'); 
 }
+
 function renderAvatars() { 
     document.getElementById('avatarGrid').innerHTML = AVATARS.map(a=>`<div class="av-opt ${selectedAvatar===a?'selected':''}" onclick="selectedAvatar='${a}';renderAvatars();">${a}</div>`).join(''); 
 }
@@ -2642,7 +2595,6 @@ function saveCorrectionBalances() {
         c.money.cash = newCash;
         c.money.savings = newSave;
         
-        // Letztes Taschengeld-Auszahlungsdatum aktualisieren, damit die App nicht sofort nachzahlt
         const curW = getIsoWeek(new Date());
         const curM = getIsoMonth(new Date());
         c.money.lastPaidWeek = curW;
@@ -2655,8 +2607,8 @@ function saveCorrectionBalances() {
         alert("Bitte gültige Zahlen eingeben (Punkte statt Komma verwenden, z.B. 5.50).");
     }
 }
-    // --- AVATAR UPLOAD LOGIK ---
-let tempAvatarData = null; // Speichert das Foto kurz zwischen
+
+let tempAvatarData = null; 
 
 function handleAvatarUpload(event) {
     const file = event.target.files[0];
@@ -2698,32 +2650,28 @@ function handleAvatarUpload(event) {
     };
     reader.readAsDataURL(file);
 }
-   function setPixarAvatar(bildDateiname) {
+
+function setPixarAvatar(bildDateiname) {
     const preview = document.getElementById('editAvatarPreview');
     preview.src = bildDateiname;
     preview.style.display = 'block';
-    
-    // WICHTIG: Jetzt landet der Avatar im richtigen "Wartezimmer" für den Speicher-Button
     tempAvatarData = bildDateiname; 
 }
-   function speakFeedback(points) {
-    // Prüft, ob der Ton im Setup aktiviert ist
+
+function speakFeedback(points) {
     if (!state.settings || !state.settings.audioEnabled) return;
 
     let soundFile = '';
 
     if (points === 1 || points === 2) {
-        // Würfelt eine Zahl von 1 bis 24
         const randomZahl = Math.floor(Math.random() * 24) + 1;
         soundFile = 'sound' + randomZahl + '.mp3'; 
     } else if (points === 4 || points === 8) {
-        // Der Jackpot-Sound (hier brauchst du eine Datei namens jackpot.mp3 im Ordner)
         soundFile = 'jackpot.mp3'; 
     } else {
-        return; // Bei 0 Punkten bleibt es still
+        return; 
     }
 
-    // Audio-Datei laden und abspielen
     let audio = new Audio(soundFile);
     audio.play().catch(e => console.log("Audio-Fehler:", e));
 }
