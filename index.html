@@ -2480,8 +2480,24 @@ function addShop() {
         document.getElementById('newSCost').value = '';
         document.getElementById('newSBroMission').checked = false;
         
-        // NEU: Aktualisiert die Setup-Liste sofort, damit du weißt, dass es gespeichert wurde!
+        // Aktualisiert die Setup-Liste sofort
         renderSettingsLists();
+
+        // --- NEU: Visuelles & akustisches Feedback ---
+        let audio = new Audio('sound1.mp3');
+        audio.play().catch(e => console.log("Audio-Fehler:", e));
+
+        const btn = document.querySelector('.btn.btn-p');
+        if (btn) {
+            const originalText = btn.innerText;
+            btn.innerText = "✅ In den Shop gestellt!";
+            btn.style.backgroundColor = "#28a745";
+            
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.backgroundColor = "";
+            }, 2000);
+        }
     }
 }
 function delShop(id) { state.shopItems=state.shopItems.filter(x=>x.id!==id); saveData(); }
